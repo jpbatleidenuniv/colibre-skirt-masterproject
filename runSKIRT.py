@@ -11,7 +11,13 @@ import os
 # First, determine from the available SKIRT input files which halos to process
 # This can of course easily replaced by e.g. a .txt file with a list of halo indices
 
-halo_indices = 0
+SKIRTinputFiles_list = os.listdir('SKIRTinputFiles')
+
+halo_indices = []
+
+for filename in SKIRTinputFiles_list:
+    if 'old_stars' in filename:
+        halo_indices.append(int(filename[:-14]))
 
 
 Nprocesses = 3 # How many SKIRT simulations you want to run in parallel.
@@ -19,9 +25,9 @@ Nprocesses = 3 # How many SKIRT simulations you want to run in parallel.
 
 # Global settings
 
-boxSize = 1e5 # In pc
-Npp = int(10**7.5)
-binTreeMaxLevel = 36
+boxSize = 1e5 # Simulated box size, in pc
+Npp = int(10**7.5) # Number of photon packets
+binTreeMaxLevel = 36 # Maximum refinement level of the spatial grid
 version = 'v3.0'
 
 # Edit ski file
@@ -58,7 +64,7 @@ def runSKIRT(halo_index):
 
         SigmaDust = dustHalfMass / (np.pi * dustHalfMassRadius**2) # In solar masses / kpc*^2
 
-        maxDustFraction = np.clip(10**(2.5 - 1.5 * np.log10(SigmaDust)), a_min = 10**(-6.5), a_max = 10**(-3.5))
+        maxDustFraction = np.clip(10**(2.5 - 1.5 * np.log10(SigmaDust)), a_min = 10**(-6.5), a_max = 10**(-3.5)) # Refinement criterion based on dust mass surface density
 
         subprocess.run(['perl', '-pi', '-e', 's/maxLevel=\"0/maxLevel=\"' + str(binTreeMaxLevel) + '/g', skifilename])
 
@@ -100,8 +106,6 @@ def runSKIRT(halo_index):
 
     subprocess.run(['perl', '-pi', '-e', 's/numPackets=\"0/numPackets=\"' + str(Npp) + '/g', skifilename])
 
-    subprocess.run(['perl', '-pi', '-e', 's#SKIRTinputFiles#SKIRTinputFiles/' + sim_name + '#g', skifilename])
-
     subprocess.run(['perl', '-pi', '-e', 's/old_stars.txt/' + str(halo_index) + '_old_stars.txt/g', skifilename])
     subprocess.run(['perl', '-pi', '-e', 's/young_stars.txt/' + str(halo_index) + '_young_stars.txt/g', skifilename])
 
@@ -115,7 +119,7 @@ def runSKIRT(halo_index):
     # Remove unneeded SKIRT output and move SEDs to output folder
 
     subprocess.run(['rm', skifilename, skifilename[:-4] + '_parameters.xml', skifilename[:-4] + '_log.txt']) # Note that this also removes the log file, which you might not want
-    subprocess.run(['mv', str(halo_index) + '_' + version + '_SED_sed.dat', 'SKIRToutputFiles/' + sim_name + '/' + str(halo_index) + '_SED.dat'])
+    subprocess.run(['mv', str(halo_index) + '_' + version + '_SED_sed.dat', 'SKIRToutputFiles/' + str(halo_index) + '_SED.dat'])
 
     return skifilename
 

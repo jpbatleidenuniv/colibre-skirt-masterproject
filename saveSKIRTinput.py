@@ -29,7 +29,7 @@ catalogue = load_snapshot(catalogue_file)
 Mstar = unyt.unyt_array(catalogue.exclusive_sphere_100kpc.stellar_mass.to_physical()) # Convert the cosmo arrays to unyt arrays (without the "Physical" attribute).
 
 
-SEL = (Mstar >= unyt.unyt_quantity(10**8.5, 'Msun')) # Selection based on stellar mass
+SEL = (Mstar >= unyt.unyt_quantity(10**9, 'Msun')) # Selection based on stellar mass
 
 
 halo_indices = np.where(SEL)[0]
