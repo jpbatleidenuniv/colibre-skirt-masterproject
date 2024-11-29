@@ -8,7 +8,14 @@ SKIRT needs the information for the stars and dust particles in `.txt`files. At 
 All settings of the SKIRT simulation are given in the `template_v3.0.ski`. For your own work you will probably need to adjust this file, e.g. to customize the output you want (i.e. spectra/images/datacubes). Feel free to reach out to us in case you have any questions on how to do this!
 
 ## 3. Running SKIRT for a set of galaxies
-To iterate over the galaxies for which `.txt`input files were downloaded, run the `runSKIRT.py` script on a machine where SKIRT is installed. This will iterate over the galaxies with a specified number of SKIRT simulations in parallel, using the SKIRT parameters specified in `template_v3.0.ski`. The output of the SKIRT simulation (if you don't change the configuration file, this is simply a panchromatic SED for every galaxy) will be place in the `SKIRToutputFiles` folder. Extra note: The runtime of SKIRT scales in many cases (especially as long as the number of photon packets is below approximately 1e8) with the number of cells in the spatial grid. We use an empirical grid refinement criterion based on the dust mass surface density of each simulated galaxy to have grids with appropriate resolutions. This leads to an average speedup of a SKIRT simulation by a factor of a few compared to a more conventional approach where the same grid refinement criterion is used for all galaxies.
+To iterate over the galaxies for which `.txt`input files were downloaded, run the `runSKIRT.py` script on a machine where SKIRT is installed. This will iterate over the galaxies with a specified number of SKIRT simulations in parallel, using the SKIRT parameters specified in `template_v3.0.ski`. The output of the SKIRT simulation (if you don't change the configuration file, this is simply a panchromatic SED for every galaxy) will be placed in the `SKIRToutputFiles` folder. Extra note: The runtime of SKIRT scales in many cases (especially as long as the number of photon packets is below approximately 1e8) with the number of cells in the spatial grid. We use an empirical grid refinement criterion based on the dust mass surface density of each simulated galaxy to have grids with appropriate resolutions. This leads to an average speedup of a SKIRT simulation by a factor of a few compared to a more conventional approach where the same grid refinement criterion is used for all galaxies.
+
+## Installation instructions
+
+`git clone https://andreagebek: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@github.com/andreagebek/colibre-skirt.git`
+`cd colibre-skirt`
+`mkdir SKIRTinputFiles SKIRToutputFiles`
+
 
 ## Contact
-In case of questions or comments, please reach out to [Andrea Gebek](andrea.gebek@ugent.be).
+In case of questions or comments, please reach out to Andrea Gebek (andrea.gebek@ugent.be).
