@@ -12,8 +12,8 @@ To iterate over the galaxies for which `.txt`input files were downloaded, run th
 
 ## Installation instructions
 
-`git clone https://andreagebek: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@github.com/andreagebek/colibre-skirt.git`
-`cd colibre-skirt`
+`git clone https://andreagebek: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@github.com/andreagebek/colibre-skirt.git`\
+`cd colibre-skirt`\
 `mkdir SKIRTinputFiles SKIRToutputFiles`
 
 
