@@ -64,7 +64,7 @@ def runSKIRT(halo_index):
 
         SigmaDust = dustHalfMass / (np.pi * dustHalfMassRadius**2) # In solar masses / kpc*^2
 
-        maxDustFraction = np.clip(10**(2.5 - 1.5 * np.log10(SigmaDust)), a_min = 10**(-6.5), a_max = 10**(-3.5)) # Refinement criterion based on dust mass surface density
+        maxDustFraction = np.clip(10**(2.5 - 1.5 * np.log10(SigmaDust)), a_min = 10**(-6.5), a_max = 10**(-4.5)) # Refinement criterion based on dust mass surface density
 
         subprocess.run(['perl', '-pi', '-e', 's/maxLevel=\"0/maxLevel=\"' + str(binTreeMaxLevel) + '/g', skifilename])
 
