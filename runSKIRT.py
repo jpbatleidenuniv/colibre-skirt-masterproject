@@ -9,7 +9,7 @@ from multiprocessing import Pool
 import os
 
 # First, determine from the available SKIRT input files which halos to process
-# This can of course easily replaced by e.g. a .txt file with a list of halo indices
+# This can of course easily be replaced by e.g. a .txt file with a list of halo indices
 
 SKIRTinputFiles_list = os.listdir('SKIRTinputFiles')
 
