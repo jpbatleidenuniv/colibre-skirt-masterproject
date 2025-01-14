@@ -22,6 +22,8 @@ for filename in SKIRTinputFiles_list:
 
 Nprocesses = 3 # How many SKIRT simulations you want to run in parallel.
 # Can also be set to one to run the SKIRT simulations serially.
+# Note that each SKIRT simulation runs with 16 threads by default
+# (this number can also be changed).
 
 # Global settings
 
@@ -118,7 +120,7 @@ def runSKIRT(halo_index):
 
     # Remove unneeded SKIRT output and move SEDs to output folder
 
-    subprocess.run(['rm', skifilename, skifilename[:-4] + '_parameters.xml', skifilename[:-4] + '_log.txt']) # Note that this also removes the log file, which you might not want
+    subprocess.run(['rm', skifilename, skifilename[:-4] + '_parameters.xml', skifilename[:-4] + '_log.txt']) # Note that this also removes the log file, which you might want to keep
     subprocess.run(['mv', str(halo_index) + '_' + version + '_SED_sed.dat', 'SKIRToutputFiles/' + str(halo_index) + '_SED.dat'])
 
     return skifilename

@@ -16,10 +16,29 @@ import unyt
 
 startTime = datetime.now()
 
-simulation = 'L050_m6/Thermal_non_equilibrium'
+z = 0.1 # Redshift
+simL = 25 # Simulation box size (Mpc)
+simR = 5 # Simulation resolution (~log10(M/Msun))
+simMode = 'Thermal_non_equilibrium'
 
-catalogue_file = '/cosma8/data/dp004/colibre/Runs/' + simulation + '/SOAP/halo_properties_0123.hdf5'
-virtual_snapshot_file = '/cosma8/data/dp004/colibre/Runs/' + simulation + '/SOAP/colibre_with_SOAP_membership_0123.hdf5'
+dataPath = '/cosma8/data/dp004/colibre/Runs/'
+
+sim = 'L{:03.0f}_m{:01.0f}'.format(simL, simR)
+simPath = dataPath + sim + '/' + simMode +'/'
+
+z_list = np.loadtxt(simPath + 'output_list.txt', delimiter = ',', usecols = 0)     # Load the redshifts of the available snapshots
+                                                                               # and check whether the desired redshift is there
+if np.isin(z, z_list):
+    snap = np.argwhere(z_list==z)[0,0]
+    print('\nz = {:02.2f} --> snapshot {:04d}'.format(z, snap))
+elif z>0:
+    snap = np.argmin(abs(z_list-z))
+    print('\nz = {:02.2f} snapshot not available --> redirecting to snapshot {:04d}, corresponding to z = {:02.2f}'.format(z, snap, z_list[snap]))
+else:
+    raise ValueError('Illegal redshift: z = {:02.2f}'.format(z))
+
+catalogue_file = f'{simPath}SOAP/halo_properties_{snap:04d}.hdf5'
+virtual_snapshot_file = f'{simPath}SOAP/colibre_with_SOAP_membership_{snap:04d}.hdf5'
 
 
 # Define the galaxy sample here
@@ -29,7 +48,9 @@ catalogue = load_snapshot(catalogue_file)
 Mstar = unyt.unyt_array(catalogue.exclusive_sphere_100kpc.stellar_mass.to_physical()) # Convert the cosmo arrays to unyt arrays (without the "Physical" attribute).
 
 
-SEL = (Mstar >= unyt.unyt_quantity(10**9, 'Msun')) # Selection based on stellar mass
+SEL = (Mstar >= unyt.unyt_quantity(10**9, 'Msun')) * (Mstar < unyt.unyt_quantity(10**9.03, 'Msun')) # Selection based on stellar mass
+
+print(len(SEL[SEL]), 'halos in this selection.')
 
 
 halo_indices = np.where(SEL)[0]
