@@ -100,9 +100,17 @@ def runSKIRT(halo_index):
             fp.truncate()
 
             # start writing lines
-            # iterate line and line number
-            for number, line in enumerate(lines):
-                if number <= 40 or number >= 197:
+            # iterate over lines, skipping mediumSystem part
+
+            writeLine = True
+
+            for line in lines:
+                if 'mediumSystem' in line:
+                    writeLine = False
+                if 'instrumentSystem' in line:
+                    writeLine = True
+                
+                if writeLine:
                     fp.write(line)
 
 
