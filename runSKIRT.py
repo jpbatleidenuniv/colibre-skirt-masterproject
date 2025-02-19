@@ -22,7 +22,7 @@ for filename in SKIRTinputFiles_list:
 
 Nprocesses = 3 # How many SKIRT simulations you want to run in parallel.
 # Can also be set to one to run the SKIRT simulations serially.
-# Note that each SKIRT simulation runs with 16 threads by default
+# Note that each SKIRT simulation runs with 4 threads by default
 # (this number can also be changed).
 
 # Global settings
@@ -124,7 +124,7 @@ def runSKIRT(halo_index):
 
     # Run skirt
 
-    subprocess.run(['skirt', '-t', '16', '-b', skifilename]) # Run SKIRT with 16 threads (that's apparently quite optimal)
+    subprocess.run(['skirt', '-t', '4', '-b', skifilename]) # Run SKIRT with 4 threads (that's apparently quite optimal)
 
     # Remove unneeded SKIRT output and move SEDs to output folder
 
