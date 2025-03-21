@@ -16,7 +16,7 @@
                 <sources type="Source">
                     <ParticleSource filename="SKIRTinputFiles/old_stars.txt" importVelocity="false" importVelocityDispersion="false" importCurrentMass="false" useColumns="" sourceWeight="1" wavelengthBias="0.5">
                         <smoothingKernel type="SmoothingKernel">
-                            <CubicSplineSmoothingKernel/>
+                            <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
                         <sedFamily type="SEDFamily">
                             <BpassSEDFamily/>
@@ -27,7 +27,7 @@
                     </ParticleSource>
                     <ParticleSource filename="SKIRTinputFiles/young_stars.txt" importVelocity="false" importVelocityDispersion="false" importCurrentMass="false" useColumns="" sourceWeight="1" wavelengthBias="0.5">
                         <smoothingKernel type="SmoothingKernel">
-                            <CubicSplineSmoothingKernel/>
+                            <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
                         <sedFamily type="SEDFamily">
                             <ToddlersSEDFamily pahfraction="High" resolution="Low"/>
@@ -70,7 +70,7 @@
                 <media type="Medium">
                     <ParticleMedium filename="SKIRTinputFiles/FeSilicatesLarge.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
                         <smoothingKernel type="SmoothingKernel">
-                            <CubicSplineSmoothingKernel/>
+                            <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
                         <materialMix type="MaterialMix">
                             <ConfigurableDustMix scatteringType="HenyeyGreenstein">
@@ -89,7 +89,7 @@
                     </ParticleMedium>
                     <ParticleMedium filename="SKIRTinputFiles/MgSilicatesLarge.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
                         <smoothingKernel type="SmoothingKernel">
-                            <CubicSplineSmoothingKernel/>
+                            <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
                         <materialMix type="MaterialMix">
                             <ConfigurableDustMix scatteringType="HenyeyGreenstein">
@@ -108,7 +108,7 @@
                     </ParticleMedium>
                     <ParticleMedium filename="SKIRTinputFiles/GraphiteLarge.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
                         <smoothingKernel type="SmoothingKernel">
-                            <CubicSplineSmoothingKernel/>
+                            <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
                         <materialMix type="MaterialMix">
                             <ConfigurableDustMix scatteringType="HenyeyGreenstein">
@@ -127,7 +127,7 @@
                     </ParticleMedium>
                     <ParticleMedium filename="SKIRTinputFiles/FeSilicatesSmall.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
                         <smoothingKernel type="SmoothingKernel">
-                            <CubicSplineSmoothingKernel/>
+                            <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
                         <materialMix type="MaterialMix">
                             <ConfigurableDustMix scatteringType="HenyeyGreenstein">
@@ -146,7 +146,7 @@
                     </ParticleMedium>
                     <ParticleMedium filename="SKIRTinputFiles/MgSilicatesSmall.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
                         <smoothingKernel type="SmoothingKernel">
-                            <CubicSplineSmoothingKernel/>
+                            <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
                         <materialMix type="MaterialMix">
                             <ConfigurableDustMix scatteringType="HenyeyGreenstein">
@@ -165,7 +165,7 @@
                     </ParticleMedium>
                     <ParticleMedium filename="SKIRTinputFiles/GraphiteSmall.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
                         <smoothingKernel type="SmoothingKernel">
-                            <CubicSplineSmoothingKernel/>
+                            <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
                         <materialMix type="MaterialMix">
                             <ConfigurableDustMix scatteringType="HenyeyGreenstein">

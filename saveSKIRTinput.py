@@ -81,7 +81,7 @@ def analysis(sg, halo_index, halo_ID, specific_dust_mass):
     stars_x, stars_y, stars_z = sg.stars.coordinates.to('pc').to_physical().T
     # Recalculate stellar smoothing lengths, following COLIBRE tutorials
     stars_sml = gsl((sg.stars.coordinates + sg.centre) % sg.metadata.boxsize, sg.metadata.boxsize,
-                    kernel_gamma = 2.0, neighbours = 65, speedup_fac = 2, dimension = 3).to('pc').to_physical()
+                    kernel_gamma = 2.0, neighbours = 65, speedup_fac = 2, dimension = 3).to('pc').to_physical() * 2.018932
     stars_Z = sg.stars.metal_mass_fractions.to_physical()
     stars_M = sg.stars.initial_masses.to('Msun').to_physical()
     stars_age = sg.stars.ages.to('yr').to_physical()
@@ -129,7 +129,7 @@ def analysis(sg, halo_index, halo_ID, specific_dust_mass):
         return None
     
     gas_x, gas_y, gas_z = sg.gas.coordinates.to('pc').to_physical().T
-    gas_sml = sg.gas.smoothing_lengths.to('pc').to_physical()
+    gas_sml = sg.gas.smoothing_lengths.to('pc').to_physical() * 2.018932
     gas_M = sg.gas.masses.to('Msun').to_physical()
 
     DustSpecies = sg.gas.dust_mass_fractions.named_columns
