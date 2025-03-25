@@ -6,138 +6,64 @@ Created by Andrea Gebek on 29.11.2024
 import numpy as np
 import subprocess
 from multiprocessing import Pool
-import os
 
-# First, determine from the available SKIRT input files which halos to process
-# This can of course easily be replaced by e.g. a .txt file with a list of halo indices
+# Set Paths
 
-SKIRTinputFiles_list = os.listdir('SKIRTinputFiles')
+sampleFolder = '/Users/agebek/Downloads/' # Folder to the galaxy sample files
+txtFilePath = '/Users/agebek/Downloads/' # Path to the COLIBRE particle .txt files
+SKIRTinputFilePath = '/Users/agebek/Downloads/' # Path where the SKIRT input files will be stored
 
-halo_indices = []
+# Set list of snapshots to postprocess
 
-for filename in SKIRTinputFiles_list:
-    if 'old_stars' in filename:
-        halo_indices.append(int(filename[:-14]))
-
+snapList = [56, 123] # List of snapshots
 
 Nprocesses = 3 # How many SKIRT simulations you want to run in parallel.
 # Can also be set to one to run the SKIRT simulations serially.
 # Note that each SKIRT simulation runs with 4 threads by default
 # (this number can also be changed).
 
-# Global settings
+def preprocess(snapList):
+    # Generate a list of SKIRT simulation names and run the necessary preprocessing steps
 
-boxSize = 1e5 # Simulated box size, in pc
-Npp = int(10**7.5) # Number of photon packets
-binTreeMaxLevel = 36 # Maximum refinement level of the spatial grid
-version = 'v3.0'
+    skifilenames = []
 
-# Edit ski file
+    for snap in snapList:
 
-def runSKIRT(halo_index):
+        halo_IDs, Rstar = np.loadtxt(sampleFolder + '/sample_' + str(snap) + '.txt', unpack = True, usecols = [0, 2])
+        halo_IDs = halo_IDs.astype(int)
 
-    skifilename = str(halo_index) + '_' + version + '.ski'
-    skifilename_template = 'template_' + version + '.ski'
+        for idx, ID in enumerate(halo_IDs):
 
-    subprocess.run(['cp', skifilename_template, skifilename]) # copy the skirt file for each galaxy
+            skifilenames.append('snap' + str(snap) + '_ID' + str(ID))
 
-    # Check whether there is a dust .txt file. If not, run SKIRT without medium.
+            # Save SKIRT input files
 
-    if os.path.isfile('SKIRTinputFiles/' + str(halo_index) + '_FeSilicatesLarge.txt'):
-        # Calculate max dust fraction based on particle data
+            subprocess.run(['python', 'saveSKIRTinput.py', str(snap), str(ID), txtFilePath, SKIRTinputFilePath])
 
-        dust_x, dust_y, dust_z, dust_m_LargeFeSilicates = np.loadtxt('SKIRTinputFiles/' + str(halo_index) + '_FeSilicatesLarge.txt', unpack = True, usecols = [0, 1, 2, 4])
-        dust_m_LargeMgSilicates = np.loadtxt('SKIRTinputFiles/' + str(halo_index) + '_MgSilicatesLarge.txt', usecols = 4)
-        dust_m_LargeGraphite = np.loadtxt('SKIRTinputFiles/' + str(halo_index) + '_GraphiteLarge.txt', usecols = 4)
-        dust_m_SmallFeSilicates = np.loadtxt('SKIRTinputFiles/' + str(halo_index) + '_FeSilicatesSmall.txt', usecols = 4)
-        dust_m_SmallMgSilicates = np.loadtxt('SKIRTinputFiles/' + str(halo_index) + '_MgSilicatesSmall.txt', usecols = 4)
-        dust_m_SmallGraphite = np.loadtxt('SKIRTinputFiles/' + str(halo_index) + '_GraphiteSmall.txt', usecols = 4)
-        dust_m = dust_m_LargeFeSilicates + dust_m_LargeMgSilicates + dust_m_LargeGraphite + dust_m_SmallFeSilicates + dust_m_SmallMgSilicates + dust_m_SmallGraphite # In Msun
+            # Edit ski files
 
-        dust_r = np.sqrt(dust_x**2 + dust_y**2 + dust_z**2) * 1e-3 # In kpc
+            subprocess.run(['python', 'editSkiFile.py', str(snap), str(ID), str(Rstar[idx]), txtFilePath, SKIRTinputFilePath])
 
-        dustMasses_sorted = dust_m[np.argsort(dust_r)]
-
-        idx_halfmass = np.max(np.argwhere((np.cumsum(dustMasses_sorted) / np.sum(dustMasses_sorted)) <= 0.5))
-
-        dustHalfMassRadius = np.sort(dust_r)[idx_halfmass]
-
-        dustHalfMass = (np.sum(dust_m) / 2.)
-
-        SigmaDust = dustHalfMass / (np.pi * dustHalfMassRadius**2) # In solar masses / kpc*^2
-
-        maxDustFraction = np.clip(10**(2.5 - 1.5 * np.log10(SigmaDust)), a_min = 10**(-6.5), a_max = 10**(-4.5)) # Refinement criterion based on dust mass surface density
-
-        subprocess.run(['perl', '-pi', '-e', 's/maxLevel=\"0/maxLevel=\"' + str(binTreeMaxLevel) + '/g', skifilename])
-
-        subprocess.run(['perl', '-pi', '-e', 's/FeSilicatesLarge.txt/' + str(halo_index) + '_FeSilicatesLarge.txt/g', skifilename])
-        subprocess.run(['perl', '-pi', '-e', 's/MgSilicatesLarge.txt/' + str(halo_index) + '_MgSilicatesLarge.txt/g', skifilename])
-        subprocess.run(['perl', '-pi', '-e', 's/GraphiteLarge.txt/' + str(halo_index) + '_GraphiteLarge.txt/g', skifilename])
-        subprocess.run(['perl', '-pi', '-e', 's/FeSilicatesSmall.txt/' + str(halo_index) + '_FeSilicatesSmall.txt/g', skifilename])
-        subprocess.run(['perl', '-pi', '-e', 's/MgSilicatesSmall.txt/' + str(halo_index) + '_MgSilicatesSmall.txt/g', skifilename])
-        subprocess.run(['perl', '-pi', '-e', 's/GraphiteSmall.txt/' + str(halo_index) + '_GraphiteSmall.txt/g', skifilename])
-
-        subprocess.run(['perl', '-pi', '-e', 's/minX=\"-0/minX=\"' + str(-boxSize / 2.) + '/g', skifilename])
-        subprocess.run(['perl', '-pi', '-e', 's/maxX=\"0/maxX=\"' + str(boxSize / 2.) + '/g', skifilename])
-        subprocess.run(['perl', '-pi', '-e', 's/minY=\"-0/minY=\"' + str(-boxSize / 2.) + '/g', skifilename])
-        subprocess.run(['perl', '-pi', '-e', 's/maxY=\"0/maxY=\"' + str(boxSize / 2.) + '/g', skifilename])
-        subprocess.run(['perl', '-pi', '-e', 's/minZ=\"-0/minZ=\"' + str(-boxSize / 2.) + '/g', skifilename])
-        subprocess.run(['perl', '-pi', '-e', 's/maxZ=\"0/maxZ=\"' + str(boxSize / 2.) + '/g', skifilename])
-
-        subprocess.run(['perl', '-pi', '-e', 's/maxDustFraction=\"0/maxDustFraction=\"' + str(maxDustFraction) + '/g', skifilename])
-
-    else:
-        # Change the skirt simulation to noMedium
-
-        subprocess.run(['perl', '-pi', '-e', 's/simulationMode=\"DustEmission/simulationMode=\"NoMedium/g', skifilename])
-
-        with open(skifilename, 'r+') as fp:
-            # read and store all lines into list
-            lines = fp.readlines()
-            # move file pointer to the beginning of a file
-            fp.seek(0)
-            # truncate the file
-            fp.truncate()
-
-            # start writing lines
-            # iterate over lines, skipping mediumSystem part
-
-            writeLine = True
-
-            for line in lines:
-                if 'mediumSystem' in line:
-                    writeLine = False
-                if 'instrumentSystem' in line:
-                    writeLine = True
-                
-                if writeLine:
-                    fp.write(line)
+    return skifilenames
 
 
-    subprocess.run(['perl', '-pi', '-e', 's/numPackets=\"0/numPackets=\"' + str(Npp) + '/g', skifilename])
 
-    subprocess.run(['perl', '-pi', '-e', 's/old_stars.txt/' + str(halo_index) + '_old_stars.txt/g', skifilename])
-    subprocess.run(['perl', '-pi', '-e', 's/young_stars.txt/' + str(halo_index) + '_young_stars.txt/g', skifilename])
-
-    subprocess.run(['perl', '-pi', '-e', 's/radius=\"0/radius=\"' + str(boxSize / 2.) + '/g', skifilename])
-
+def runSKIRT(skifilename):
 
     # Run skirt
 
     subprocess.run(['skirt', '-t', '4', '-b', skifilename]) # Run SKIRT with 4 threads (that's apparently quite optimal)
-
-    # Remove unneeded SKIRT output and move SEDs to output folder
-
-    subprocess.run(['rm', skifilename, skifilename[:-4] + '_parameters.xml', skifilename[:-4] + '_log.txt']) # Note that this also removes the log file, which you might want to keep
-    subprocess.run(['mv', str(halo_index) + '_' + version + '_SED_sed.dat', 'SKIRToutputFiles/' + str(halo_index) + '_SED.dat'])
+    # The -b option reduces the verbosity of the log (but the saved log file still contains all logging information)
 
     return skifilename
 
 def main():
 
+    skifilenames = preprocess(snapList)
+
     with Pool(processes = Nprocesses) as pool:
         
-        pool.map(runSKIRT, halo_indices)
+        pool.map(runSKIRT, skifilenames)
 
 if __name__=="__main__":
 

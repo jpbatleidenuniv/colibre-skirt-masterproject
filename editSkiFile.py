@@ -15,30 +15,31 @@ startTime = datetime.now()
 
 SKIRTboxsize = unyt.unyt_quantity(100., 'kpc')
 old_stars_tmin = unyt.unyt_quantity(10., 'Myr') # Minimum age in Myr for an evolved star particle. Also determines the TODDLERS averaging timescale
+# Don't change this unless you know what you're doing :)
 
-Npp = int(10**7.5)
-binTreeMaxLevel = 36
+Npp = int(10**7.5) # Number of photon packets
+binTreeMaxLevel = 36 # Max refinement level of the spatial grid
 
 snapNum = sys.argv[1]
 haloID = sys.argv[2]
 Rstar = float(sys.argv[3])
 
-txtFilePath = '/dodrio/scratch/projects/starting_2025_007/COLIBRE/test_Shengdong/L100m6_particleData/'
-SKIRTinputFilePath = '/dodrio/scratch/projects/starting_2025_007/COLIBRE/test_Shengdong/SKIRTinputFiles/'
+txtFilePath = sys.argv[4]
+SKIRTinputFilePath = sys.argv[5]
 
-skifileversion = '4.2'
+skifileversion = '4.0'
 
-mediumXMLlineDict = {'4.0': (40, 197), '4.1': (29, 186), '4.2': (40, 197)}
+mediumXMLlineDict = {'4.0': (40, 197)} # Lines in the .ski file that describe the medium system
 
 # Edit ski file
 
-def runSKIRT(snapNum, haloID, Rstar):
+def editSki(snapNum, haloID, Rstar):
 
     SKIRTinputFiles = SKIRTinputFilePath + 'snap' + snapNum + '_ID' + haloID
 
-    skifilename = '/dodrio/scratch/projects/starting_2025_007/COLIBRE/test_Shengdong/v' + skifileversion + '.ski'
+    skifilename = '/Users/agebek/Projects/Colibre/colibre-skirt/template_v' + skifileversion + '.ski'
 
-    skifilename_halo = '/dodrio/scratch/projects/starting_2025_007/COLIBRE/test_Shengdong/snap' + snapNum + '_ID' + haloID + '.ski'
+    skifilename_halo = 'snap' + snapNum + '_ID' + haloID + '.ski'
 
 
     subprocess.run(['cp', skifilename, skifilename_halo]) # copy the skirt file for each galaxy
@@ -118,6 +119,6 @@ def runSKIRT(snapNum, haloID, Rstar):
 
     return None
 
-runSKIRT(snapNum, haloID, Rstar)
+editSki(snapNum, haloID, Rstar)
 
 print('Elapsed time to edit ski file and calculate dust surface density:', datetime.now() - startTime)
