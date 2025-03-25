@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- A SKIRT parameter file © Astronomical Observatory, Ghent University -->
-<skirt-simulation-hierarchy type="MonteCarloSimulation" format="9" producer="SKIRT v9.0 (git ec2825e built on 12/01/2024 at 15:52:25)" time="2024-07-02T17:42:01.333">
+<skirt-simulation-hierarchy type="MonteCarloSimulation" format="9" producer="SKIRT v9.0 (git b4ea245 built on 03/03/2025 at 12:16:21)" time="2024-07-02T17:42:01.333">
     <MonteCarloSimulation userLevel="Expert" simulationMode="DustEmission" iteratePrimaryEmission="false" iterateSecondaryEmission="false" numPackets="0">
         <random type="Random">
             <Random seed="0"/>
@@ -14,23 +14,23 @@
         <sourceSystem type="SourceSystem">
             <SourceSystem minWavelength="0.09 micron" maxWavelength="2000 micron" wavelengths="0.55 micron" sourceBias="0.5">
                 <sources type="Source">
-                    <ParticleSource filename="SKIRTinputFiles/old_stars.txt" importVelocity="false" importVelocityDispersion="false" importCurrentMass="false" useColumns="" sourceWeight="1" wavelengthBias="0.5">
+                    <ParticleSource filename="old_stars.txt" importVelocity="false" importVelocityDispersion="false" importCurrentMass="false" useColumns="" sourceWeight="1" wavelengthBias="0.5">
                         <smoothingKernel type="SmoothingKernel">
                             <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
                         <sedFamily type="SEDFamily">
-                            <BpassSEDFamily/>
+                            <BpassChabrier100SEDFamily/>
                         </sedFamily>
                         <wavelengthBiasDistribution type="WavelengthDistribution">
                             <DefaultWavelengthDistribution/>
                         </wavelengthBiasDistribution>
                     </ParticleSource>
-                    <ParticleSource filename="SKIRTinputFiles/young_stars.txt" importVelocity="false" importVelocityDispersion="false" importCurrentMass="false" useColumns="" sourceWeight="1" wavelengthBias="0.5">
+                    <ParticleSource filename="starforming_gas.txt" importVelocity="false" importVelocityDispersion="false" importCurrentMass="false" useColumns="" sourceWeight="1" wavelengthBias="0.5">
                         <smoothingKernel type="SmoothingKernel">
                             <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
                         <sedFamily type="SEDFamily">
-                            <ToddlersSEDFamily pahfraction="High" resolution="Low"/>
+                            <ToddlersSFRNormalizedSEDFamily templateType="BPASSChab100Bin" dust="Yes" resolution="Low" sfrPeriod="Period0Myr"/>
                         </sedFamily>
                         <wavelengthBiasDistribution type="WavelengthDistribution">
                             <DefaultWavelengthDistribution/>
@@ -68,7 +68,7 @@
                     </DustEmissionOptions>
                 </dustEmissionOptions>
                 <media type="Medium">
-                    <ParticleMedium filename="SKIRTinputFiles/FeSilicatesLarge.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                    <ParticleMedium filename="dust.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="x, y, z, smoothing length, dust mass large Fe silicates">
                         <smoothingKernel type="SmoothingKernel">
                             <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
@@ -87,7 +87,7 @@
                             </ConfigurableDustMix>
                         </materialMix>
                     </ParticleMedium>
-                    <ParticleMedium filename="SKIRTinputFiles/MgSilicatesLarge.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                    <ParticleMedium filename="dust.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="x, y, z, smoothing length, dust mass large Mg silicates">
                         <smoothingKernel type="SmoothingKernel">
                             <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
@@ -106,7 +106,7 @@
                             </ConfigurableDustMix>
                         </materialMix>
                     </ParticleMedium>
-                    <ParticleMedium filename="SKIRTinputFiles/GraphiteLarge.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                    <ParticleMedium filename="dust.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="x, y, z, smoothing length, dust mass large graphite">
                         <smoothingKernel type="SmoothingKernel">
                             <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
@@ -125,7 +125,7 @@
                             </ConfigurableDustMix>
                         </materialMix>
                     </ParticleMedium>
-                    <ParticleMedium filename="SKIRTinputFiles/FeSilicatesSmall.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                    <ParticleMedium filename="dust.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="x, y, z, smoothing length, dust mass small Fe silicates">
                         <smoothingKernel type="SmoothingKernel">
                             <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
@@ -137,14 +137,14 @@
                                             <DustEmGrainComposition grainType="aOlM5" bulkMassDensity="2.190E+00 g/cm3"/>
                                         </composition>
                                         <sizeDistribution type="GrainSizeDistribution">
-                                            <HirashitaLogNormalGrainSizeDistribution minSize="4e-4 micron" maxSize="4.9 micron" centroid="0.005 micron" width="0.75"/>
+                                            <ModifiedPowerLawGrainSizeDistribution minSize="4e-4 micron" maxSize="4.9 micron" powerLawIndex="-5" turnOffPoint="1e-2 micron" scaleExponentialDecay="5e-2 micron" exponentExponentialDecay="1" strengthCurvature="0"/>
                                         </sizeDistribution>
                                     </GrainPopulation>
                                 </populations>
                             </ConfigurableDustMix>
                         </materialMix>
                     </ParticleMedium>
-                    <ParticleMedium filename="SKIRTinputFiles/MgSilicatesSmall.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                    <ParticleMedium filename="dust.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="x, y, z, smoothing length, dust mass small Mg silicates">
                         <smoothingKernel type="SmoothingKernel">
                             <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
@@ -156,14 +156,14 @@
                                             <DustEmGrainComposition grainType="aPyM5" bulkMassDensity="2.190E+00 g/cm3"/>
                                         </composition>
                                         <sizeDistribution type="GrainSizeDistribution">
-                                            <HirashitaLogNormalGrainSizeDistribution minSize="4e-4 micron" maxSize="4.9 micron" centroid="0.005 micron" width="0.75"/>
+                                            <ModifiedPowerLawGrainSizeDistribution minSize="4e-4 micron" maxSize="4.9 micron" powerLawIndex="-5" turnOffPoint="1e-2 micron" scaleExponentialDecay="5e-2 micron" exponentExponentialDecay="1" strengthCurvature="0"/>
                                         </sizeDistribution>
                                     </GrainPopulation>
                                 </populations>
                             </ConfigurableDustMix>
                         </materialMix>
                     </ParticleMedium>
-                    <ParticleMedium filename="SKIRTinputFiles/GraphiteSmall.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                    <ParticleMedium filename="dust.txt" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="x, y, z, smoothing length, dust mass small graphite">
                         <smoothingKernel type="SmoothingKernel">
                             <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
@@ -175,7 +175,7 @@
                                             <DustEmGrainComposition grainType="CM20" bulkMassDensity="1.600E+00 g/cm3"/>
                                         </composition>
                                         <sizeDistribution type="GrainSizeDistribution">
-                                            <HirashitaLogNormalGrainSizeDistribution minSize="4e-4 micron" maxSize="4.9 micron" centroid="0.005 micron" width="0.75"/>
+                                            <ModifiedPowerLawGrainSizeDistribution minSize="4e-4 micron" maxSize="4.9 micron" powerLawIndex="-5" turnOffPoint="1e-2 micron" scaleExponentialDecay="5e-2 micron" exponentExponentialDecay="1" strengthCurvature="0"/>
                                         </sizeDistribution>
                                     </GrainPopulation>
                                 </populations>
@@ -198,7 +198,37 @@
         <instrumentSystem type="InstrumentSystem">
             <InstrumentSystem>
                 <instruments type="Instrument">
-                    <SEDInstrument instrumentName="SED" distance="10 Mpc" inclination="0 deg" azimuth="0 deg" roll="0 deg" radius="0 pc" recordComponents="false" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                    <SEDInstrument instrumentName="SED_tot" distance="10 Mpc" inclination="0 deg" azimuth="0 deg" roll="0 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <LogBorderWavelengthGrid minWavelength="0.09 micron" maxWavelength="2000 micron" numWavelengthBins="500"/>
+                        </wavelengthGrid>
+                    </SEDInstrument>
+                    <SEDInstrument instrumentName="SED_10kpc" distance="10 Mpc" inclination="0 deg" azimuth="0 deg" roll="0 deg" radius="10 kpc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <LogBorderWavelengthGrid minWavelength="0.09 micron" maxWavelength="2000 micron" numWavelengthBins="500"/>
+                        </wavelengthGrid>
+                    </SEDInstrument>
+                    <SEDInstrument instrumentName="SED_30kpc" distance="10 Mpc" inclination="0 deg" azimuth="0 deg" roll="0 deg" radius="30 kpc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <LogBorderWavelengthGrid minWavelength="0.09 micron" maxWavelength="2000 micron" numWavelengthBins="500"/>
+                        </wavelengthGrid>
+                    </SEDInstrument>
+                    <SEDInstrument instrumentName="SED_50kpc" distance="10 Mpc" inclination="0 deg" azimuth="0 deg" roll="0 deg" radius="50 kpc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <LogBorderWavelengthGrid minWavelength="0.09 micron" maxWavelength="2000 micron" numWavelengthBins="500"/>
+                        </wavelengthGrid>
+                    </SEDInstrument>
+                    <SEDInstrument instrumentName="SED_1Rstar" distance="10 Mpc" inclination="0 deg" azimuth="0 deg" roll="0 deg" radius="1 Rstar" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <LogBorderWavelengthGrid minWavelength="0.09 micron" maxWavelength="2000 micron" numWavelengthBins="500"/>
+                        </wavelengthGrid>
+                    </SEDInstrument>
+                    <SEDInstrument instrumentName="SED_3Rstar" distance="10 Mpc" inclination="0 deg" azimuth="0 deg" roll="0 deg" radius="3 Rstar" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <LogBorderWavelengthGrid minWavelength="0.09 micron" maxWavelength="2000 micron" numWavelengthBins="500"/>
+                        </wavelengthGrid>
+                    </SEDInstrument>
+                    <SEDInstrument instrumentName="SED_5Rstar" distance="10 Mpc" inclination="0 deg" azimuth="0 deg" roll="0 deg" radius="5 Rstar" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
                         <wavelengthGrid type="WavelengthGrid">
                             <LogBorderWavelengthGrid minWavelength="0.09 micron" maxWavelength="2000 micron" numWavelengthBins="500"/>
                         </wavelengthGrid>
@@ -206,5 +236,17 @@
                 </instruments>
             </InstrumentSystem>
         </instrumentSystem>
+        <probeSystem type="ProbeSystem">
+            <ProbeSystem>
+                <probes type="Probe">
+                    <ConvergenceInfoProbe probeName="conv" wavelength="0.55 micron" probeAfter="Setup"/>
+                    <LuminosityProbe probeName="lum">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <LogBorderWavelengthGrid minWavelength="0.09 micron" maxWavelength="2000 micron" numWavelengthBins="500"/>
+                        </wavelengthGrid>
+                    </LuminosityProbe>
+                </probes>
+            </ProbeSystem>
+        </probeSystem>
     </MonteCarloSimulation>
 </skirt-simulation-hierarchy>

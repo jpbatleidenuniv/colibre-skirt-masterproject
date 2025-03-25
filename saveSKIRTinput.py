@@ -1,178 +1,157 @@
 """
-Script to create SKIRT input .txt files, based on Kyle Oman's
-swiftgalaxy framework. As of November 2024, swiftgalaxy
-needs to be installed from github (see https://swiftgalaxy.readthedocs.io/en/latest/getting_started/index.html).
-Created by Andrea Gebek on 18.11.2024
+Script to create SKIRT input .txt files, from already
+stored .txt star and gas files.
+Created by Andrea Gebek on 12.3.2025.
 """
 
-from swiftgalaxy.halo_catalogues import SOAP
 import numpy as np
-from swiftgalaxy.iterator import SWIFTGalaxies
-from swiftsimio.objects import cosmo_array
-from datetime import datetime
-from swiftsimio.visualisation.smoothing_length.generate import generate_smoothing_lengths as gsl
-from swiftsimio import load as load_snapshot
 import unyt
+import h5py
+from scipy.interpolate import interp1d
+import sys
+import warnings
+from datetime import datetime
 
 startTime = datetime.now()
 
-z = 0.1 # Redshift
-simL = 25 # Simulation box size (Mpc)
-simR = 5 # Simulation resolution (~log10(M/Msun))
-simMode = 'Thermal_non_equilibrium'
+txtFilePath = '/dodrio/scratch/projects/starting_2025_007/COLIBRE/test_Shengdong/L100m6_particleData/'
+SKIRTinputFilePath = '/dodrio/scratch/projects/starting_2025_007/COLIBRE/test_Shengdong/SKIRTinputFiles/'
 
-dataPath = '/cosma8/data/dp004/colibre/Runs/'
+snapNum = sys.argv[1]
+haloID = sys.argv[2]
 
-sim = 'L{:03.0f}_m{:01.0f}'.format(simL, simR)
-simPath = dataPath + sim + '/' + simMode +'/'
+SKIRTboxsize = unyt.unyt_quantity(100., 'kpc')
+old_stars_tmin = unyt.unyt_quantity(10., 'Myr') # Minimum age in Myr for an evolved star particle. Also determines the TODDLERS averaging timescale
 
-z_list = np.loadtxt(simPath + 'output_list.txt', delimiter = ',', usecols = 0)     # Load the redshifts of the available snapshots
-                                                                               # and check whether the desired redshift is there
-if np.isin(z, z_list):
-    snap = np.argwhere(z_list==z)[0,0]
-    print('\nz = {:02.2f} --> snapshot {:04d}'.format(z, snap))
-elif z>0:
-    snap = np.argmin(abs(z_list-z))
-    print('\nz = {:02.2f} snapshot not available --> redirecting to snapshot {:04d}, corresponding to z = {:02.2f}'.format(z, snap, z_list[snap]))
-else:
-    raise ValueError('Illegal redshift: z = {:02.2f}'.format(z))
+include_TODDLERS = True
+subtract_TODDLERS_dust = False
 
-catalogue_file = f'{simPath}SOAP/halo_properties_{snap:04d}.hdf5'
-virtual_snapshot_file = f'{simPath}SOAP/colibre_with_SOAP_membership_{snap:04d}.hdf5'
+if include_TODDLERS and subtract_TODDLERS_dust:
+    with h5py.File('/dodrio/scratch/projects/starting_2025_007/COLIBRE/dustMasses/dustMasses_TODDLERS_BPASS_Chab100_' + str(int(old_stars_tmin.to('Myr').value)) + 'Myr.h5', 'r') as f:
+        mdustPerSFRtoddlers = f['mdustPerSFR'][:, 1, 3] # For fiducial parameters, SFE = 2.5% and nCloud = 320 1/cm^3
+        Ztoddlers = f['Z'][:, 1, 3]
+
+        mdustPerSFRAndZ = mdustPerSFRtoddlers / Ztoddlers
+
+        mdust_function = interp1d(np.log10(Ztoddlers), mdustPerSFRAndZ, bounds_error = False, fill_value = (mdustPerSFRAndZ[0], mdustPerSFRAndZ[-1]))
 
 
-# Define the galaxy sample here
+print('Saving SKIRT input txt files for halo ID:', haloID)
 
-catalogue = load_snapshot(catalogue_file)
+# Star particles
+#
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore') # Ignore warning if file is empty
+    stars_file = np.atleast_2d(np.loadtxt(txtFilePath + 'snap' + snapNum + '_' + 'ID' + haloID + '_stars.txt'))
 
-Mstar = unyt.unyt_array(catalogue.exclusive_sphere_100kpc.stellar_mass.to_physical()) # Convert the cosmo arrays to unyt arrays (without the "Physical" attribute).
+if np.shape(stars_file) != (1, 0): # At least one star particle
+
+    stars_x = unyt.unyt_array(stars_file[:, 0], 'pc')
+    stars_y = unyt.unyt_array(stars_file[:, 1], 'pc')
+    stars_z = unyt.unyt_array(stars_file[:, 2], 'pc')
+    stars_sml = unyt.unyt_array(stars_file[:, 3], 'pc')
+    stars_M = unyt.unyt_array(stars_file[:, 4], 'Msun')
+    stars_Z = unyt.unyt_array(stars_file[:, 5], 'dimensionless')
+    stars_age = unyt.unyt_array(stars_file[:, 6], 'yr')
 
 
-SEL = (Mstar >= unyt.unyt_quantity(10**9, 'Msun')) * (Mstar < unyt.unyt_quantity(10**9.03, 'Msun')) # Selection based on stellar mass
-
-print(len(SEL[SEL]), 'halos in this selection.')
-
-
-halo_indices = np.where(SEL)[0]
-halo_IDs = catalogue.input_halos.halo_catalogue_index.value[SEL]
-Mstar = Mstar[SEL]
-Mdust = unyt.unyt_array(catalogue.exclusive_sphere_100kpc.dust_large_grain_mass.to_physical()[SEL] + catalogue.exclusive_sphere_100kpc.dust_small_grain_mass.to_physical()[SEL])
-specific_dust_masses = (Mdust / Mstar).to('dimensionless').value
-
-soap = SOAP(catalogue_file, soap_index = halo_indices)
-
-preload_fields = {'stars.coordinates', 'stars.metal_mass_fractions', 'stars.initial_masses', 'stars.ages',
-                  'gas.coordinates', 'gas.smoothing_lengths', 'gas.masses',
-                  'gas.dust_mass_fractions.GraphiteLarge', 'gas.dust_mass_fractions.MgSilicatesLarge', 'gas.dust_mass_fractions.FeSilicatesLarge',
-                  'gas.dust_mass_fractions.GraphiteSmall', 'gas.dust_mass_fractions.MgSilicatesSmall', 'gas.dust_mass_fractions.FeSilicatesSmall'}
-
-sgs = SWIFTGalaxies(virtual_snapshot_file, soap, preload = preload_fields)
-
-def analysis(sg, halo_index, halo_ID, specific_dust_mass):
-    # this function can also have additional args & kwargs, if needed
-    # it should only access the pre-loaded data fields
-
-    print('Saving txt files for halo index:', halo_index, 'with halo ID:', halo_ID)
-    
-
-    # Star particles
-    #
-
-    stars_x, stars_y, stars_z = sg.stars.coordinates.to('pc').to_physical().T
-    # Recalculate stellar smoothing lengths, following COLIBRE tutorials
-    stars_sml = gsl((sg.stars.coordinates + sg.centre) % sg.metadata.boxsize, sg.metadata.boxsize,
-                    kernel_gamma = 2.0, neighbours = 65, speedup_fac = 2, dimension = 3).to('pc').to_physical() * 2.018932
-    stars_Z = sg.stars.metal_mass_fractions.to_physical()
-    stars_M = sg.stars.initial_masses.to('Msun').to_physical()
-    stars_age = sg.stars.ages.to('yr').to_physical()
-    stars_SFE = cosmo_array(np.full(len(stars_age), 0.025), 'dimensionless', comoving = False) # Star-formation efficienty, 2.5%
-    stars_n_cl = cosmo_array(np.full(len(stars_age), 320.), 'cm**3', comoving = False) # Cloud density
-
-    young_stars_mask = (stars_age.to('Myr').value <= 30.)
-    old_stars_mask = (~young_stars_mask)
+    old_stars_mask = (stars_age >= old_stars_tmin)
 
     old_stars_params = np.transpose([stars_x, stars_y, stars_z, stars_sml, stars_M, stars_Z, stars_age])[old_stars_mask, :]
 
-    old_stars_header = 'column 0: x [pc]\n' + \
-                'column 1: y [pc]\n' + \
-                'column 2: z [pc]\n' + \
-                'column 3: smoothing length [pc]\n' + \
-                'column 4: initial stellar mass [Msun]\n' + \
-                'column 5: metallicity [dimensionless]\n' + \
-                'column 6: age [yr]\n'
-    
-    np.savetxt('SKIRTinputFiles/' + str(halo_index) + '_old_stars.txt', old_stars_params, fmt = '%.4e', header = old_stars_header)
+else:
+
+    old_stars_params = np.array([])
+
+old_stars_header = 'Column 1: x (pc)\n' + \
+            'Column 2: y (pc)\n' + \
+            'Column 3: z (pc)\n' + \
+            'Column 4: smoothing length (pc)\n' + \
+            'Column 5: initial stellar mass (Msun)\n' + \
+            'Column 6: metallicity (1)\n' + \
+            'Column 7: age (yr)\n'
 
 
-    young_stars_params = np.transpose([stars_x, stars_y, stars_z, stars_sml, stars_age, stars_Z, stars_SFE, stars_n_cl, stars_M])[young_stars_mask, :]
-    
-    young_stars_header = 'column 0: x [pc]\n' + \
-                'column 1: y [pc]\n' + \
-                'column 2: z [pc]\n' + \
-                'column 3: smoothing length [pc]\n' + \
-                'column 4: age [yr]\n' + \
-                'column 5: metallicity [dimensionless]\n' + \
-                'column 6: star formation efficiency [dimensionless]\n' + \
-                'column 7: cloud density [1/cm3]\n' + \
-                'column 8: initial stellar mass [Msun]\n'
-    
-    np.savetxt('SKIRTinputFiles/' + str(halo_index) + '_young_stars.txt', young_stars_params, fmt = '%.4e', header = young_stars_header)
+np.savetxt(SKIRTinputFilePath + 'snap' + snapNum + '_ID' + haloID + '_old_stars.txt', old_stars_params, fmt = '%.6e', header = old_stars_header)
 
 
-    # Gas/dust particles
-    #
+# Gas/dust particles
+#
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore') # Ignore warning if file is empty
+    gas_file = np.atleast_2d(np.loadtxt(txtFilePath + 'snap' + snapNum + '_' + 'ID' + haloID + '_gas.txt'))
 
-    if specific_dust_mass < 1e-5:
-        
-        print('Galaxy with ID', halo_ID, 'and index', halo_index, 'has a specific dust mass below 1e-5. Hence, no dust particles are stored for this galaxy.')
-        
-        return None
-    
-    gas_x, gas_y, gas_z = sg.gas.coordinates.to('pc').to_physical().T
-    gas_sml = sg.gas.smoothing_lengths.to('pc').to_physical() * 2.018932
-    gas_M = sg.gas.masses.to('Msun').to_physical()
+if  np.shape(gas_file) != (1, 0): # At least one gas particle
 
-    DustSpecies = sg.gas.dust_mass_fractions.named_columns
-    gas_fDust = np.array([getattr(sg.gas.dust_mass_fractions, name) for name in DustSpecies]).T
+    gas_x = unyt.unyt_array(gas_file[:, 0], 'pc')
+    gas_y = unyt.unyt_array(gas_file[:, 1], 'pc')
+    gas_z = unyt.unyt_array(gas_file[:, 2], 'pc')
+    gas_sml = unyt.unyt_array(gas_file[:, 3], 'pc')
+    gas_Z = unyt.unyt_array(gas_file[:, 4], 'dimensionless')
+    gas_SFR10Myr = unyt.unyt_array(gas_file[:, 6], 'Msun/yr')
+    gas_Mdust = unyt.unyt_array(gas_file[:, 7:], 'Msun')
 
-    dust_M = (gas_fDust * np.atleast_1d(gas_M)[:, np.newaxis].repeat(6, axis = 1)).to('Msun').to_physical()
+    if include_TODDLERS:
+        # Star-forming gas particles
 
-    # Remove dust particles with negligible dust mass contributions
-
-    dust_M_allspecies = np.sum(dust_M, axis = 1)
-
-    sortIndices = np.argsort(dust_M_allspecies.value)[::-1]
-
-    cumulativeSum = np.cumsum(dust_M_allspecies[sortIndices])
+        gas_SFE = unyt.unyt_array(np.full(len(gas_sml), 0.025), 'dimensionless') # Star-formation efficiency, 2.5%
+        gas_n_cl = unyt.unyt_array(np.full(len(gas_sml), 320.), '1/cm**3') # Cloud density
 
 
-    criterion = ((cumulativeSum / cumulativeSum[-1]).value >= 0.999) # Take the most massive dust particles until we reach 99.9% of the total dust mass
+        starforming_gas_mask = (gas_SFR10Myr > 0.)
 
-    criterion_index = np.min(np.argwhere(criterion))
+        starforming_gas_params = np.transpose([gas_x, gas_y, gas_z, gas_sml, gas_Z, gas_SFE, gas_n_cl, gas_SFR10Myr])[starforming_gas_mask, :]
 
-    threshold_dust_M = dust_M_allspecies[sortIndices][criterion_index] # Threshold for the total dust mass of the particle
+        # Dust particles
 
-    dust_mask = (dust_M_allspecies.to('Msun').value >= threshold_dust_M)
+        if subtract_TODDLERS_dust:
 
-    dust_params = np.transpose([np.atleast_1d(gas_x)[:, np.newaxis].repeat(6 ,axis = 1),
-                                 np.atleast_1d(gas_y)[:, np.newaxis].repeat(6 ,axis = 1),
-                                 np.atleast_1d(gas_z)[:, np.newaxis].repeat(6 ,axis = 1),
-                                 np.atleast_1d(gas_sml)[:, np.newaxis].repeat(6, axis = 1),
-                                 dust_M])[:, dust_mask, :]
+            # Remove TODDLERS dust
 
-    dust_header = 'column 0: x [pc]\n' + \
-        'column 1: y [pc]\n' + \
-        'column 2: z [pc]\n' + \
-        'column 3: smoothing length [pc]\n' + \
-        'column 4: dust mass [Msun]\n'
-        
-    for k, species in enumerate(DustSpecies):
-        np.savetxt('SKIRTinputFiles/' + str(halo_index) + '_' + species + '.txt', dust_params[k], fmt = '%.4e', header = dust_header)
+            dust_M_TODDLERS = unyt.unyt_array(mdust_function(np.log10(gas_Z)), 'yr') * gas_Z * gas_SFR10Myr # TODDLERS particles dust masses
 
-    return None
+            with np.errstate(invalid = 'ignore', divide = 'ignore'):
+                gas_Mdust *= np.where(np.sum(gas_Mdust, axis = 1)[:, None] > 0., (1. - dust_M_TODDLERS / np.sum(gas_Mdust, axis = 1))[:, None], np.ones_like(gas_Mdust.value))
+            gas_Mdust -= np.where(np.sum(gas_Mdust, axis = 1)[:, None] == 0., dust_M_TODDLERS[:, None] / 6., np.zeros_like(gas_Mdust)) # Treat the gas particles that have zero dust mass differently
 
-# map accepts arguments `args` and `kwargs`, passed through to function, if needed
-sgs.map(analysis, args = list(zip(halo_indices, halo_IDs, specific_dust_masses)))
+            SEL_ghostParticle = (gas_Mdust[:, 0] < 0.) # Particles with negative dust masses
+            gas_sml[SEL_ghostParticle] *= 3. # Increase the smoothing lengths of ghost particles by a factor of three following Camps+2016
+
+    dust_mask = (np.abs(gas_x.to('kpc').value) <= SKIRTboxsize.to('kpc').value / 2.) * (np.abs(gas_y.to('kpc').value) <= SKIRTboxsize.to('kpc').value / 2.) * (np.abs(gas_z.to('kpc').value) <= SKIRTboxsize.to('kpc').value / 2.)
+
+    dust_params = np.transpose([gas_x, gas_y, gas_z, gas_sml,
+                                gas_Mdust[:, 0], gas_Mdust[:, 1], gas_Mdust[:, 2], gas_Mdust[:, 3], gas_Mdust[:, 4], gas_Mdust[:, 5]])[dust_mask, :]
+
+else:
+
+    starforming_gas_params = np.array([])
+    dust_params = np.array([])
+
+if include_TODDLERS:
+    starforming_gas_header = 'Column 1: x (pc)\n' + \
+                'Column 2: y (pc)\n' + \
+                'Column 3: z (pc)\n' + \
+                'Column 4: smoothing length (pc)\n' + \
+                'Column 5: metallicity (1)\n' + \
+                'Column 6: star formation efficiency (1)\n' + \
+                'Column 7: cloud density (1/cm3)\n' + \
+                'Column 8: star formation rate averaged over 10 Myr (Msun/yr)\n'
+
+    np.savetxt(SKIRTinputFilePath + 'snap' + snapNum + '_ID' + haloID + '_starforming_gas.txt', starforming_gas_params, fmt = '%.6e', header = starforming_gas_header)
 
 
-print('Elapsed time:', datetime.now() - startTime)
+dust_header = 'Column 1: x (pc)\n' + \
+    'Column 2: y (pc)\n' + \
+    'Column 3: z (pc)\n' + \
+    'Column 4: smoothing length (pc)\n' + \
+    'Column 5: dust mass large graphite (Msun)\n' + \
+    'Column 6: dust mass large Mg silicates (Msun)\n' + \
+    'Column 7: dust mass large Fe silicates (Msun)\n' + \
+    'Column 8: dust mass small graphite (Msun)\n' + \
+    'Column 9: dust mass small Mg silicates (Msun)\n' + \
+    'Column 10: dust mass small Fe silicates (Msun)\n'
+
+
+np.savetxt(SKIRTinputFilePath + 'snap' + snapNum + '_ID' + haloID + '_dust.txt', dust_params, fmt = '%.6e', header = dust_header)
+
+print('Elapsed time to save SKIRT input files:', datetime.now() - startTime)
