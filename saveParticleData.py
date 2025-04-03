@@ -62,7 +62,7 @@ def analysis(sg, halo_ID, Mstar, snap):
     # Recalculate stellar smoothing lengths, following COLIBRE tutorials
     if Mstar >= unyt.unyt_quantity(10**(8.5), 'Msun'):
         stars_sml = gsl((sg.stars.coordinates + sg.centre) % sg.metadata.boxsize, sg.metadata.boxsize,
-                        kernel_gamma = 2.0, neighbours = 65, speedup_fac = 2, dimension = 3).to('pc').to_physical()  * 2.018932
+                        kernel_gamma = 1.0, neighbours = 65, speedup_fac = 2, dimension = 3).to('pc').to_physical()
     else:
         stars_sml = sg.stars.smoothing_lengths.to('pc').to_physical() * 2.018932
     stars_Z = sg.stars.metal_mass_fractions.to_physical()
