@@ -15,6 +15,8 @@ import unyt
 import yaml
 import argparse
 import os
+import h5py
+from swiftsimio.objects import cosmo_array, cosmo_factor, a
 
 # Set simName
 parser = argparse.ArgumentParser(
@@ -84,11 +86,43 @@ stars_header = 'Column 1: x (pc)\n' + \
             'Column 6: metallicity (1)\n' + \
             'Column 7: age (yr)\n'
 
+def attach_membership_info_to_sg_and_mask(sg, membership_filename):
+    # Attaches SOAP membership information to SWIFTGalaxy object 
+    # if SWIFTGalaxies could not be run with a virtual snapshot file.
+
+    mfile = h5py.File(membership_filename, "r")
+    for gname, ptype in zip(
+        sg.metadata.present_group_names, sg.metadata.present_groups
+    ):
+        groupnr_bound = np.concatenate(
+            [
+                mfile[f"{ptype}/GroupNr_bound"][read_range[0] : read_range[1]]
+                for read_range in getattr(sg.mask, f"_{gname}")
+            ]
+        )
+        getattr(sg, gname)._particle_dataset.group_nr_bound = cosmo_array(
+            groupnr_bound,
+            unyt.dimensionless,
+            comoving=True,
+            cosmo_factor=cosmo_factor(a**0, sg.metadata.scale_factor),
+        )
+
+    mfile.close()
+    extra_mask = sg.halo_catalogue._generate_bound_only_mask(sg)
+    sg.mask_particles(extra_mask)
+    return
+
 def analysis(sg, halo_ID, Mstar, snap):
     # this function can also have additional args & kwargs, if needed
     # it should only access the pre-loaded data fields
 
     print('Saving txt files for halo ID:', halo_ID)
+
+    if add_mem == True:
+        attach_membership_info_to_sg_and_mask(
+            sg, 
+            membership_file
+        )
     
     # Star particles
     #
@@ -131,6 +165,7 @@ def analysis(sg, halo_ID, Mstar, snap):
 
     return None
 
+
 for snap in args.snapList:
 
     startTime = datetime.now()
@@ -165,7 +200,38 @@ for snap in args.snapList:
                     'gas.dust_mass_fractions.GraphiteLarge', 'gas.dust_mass_fractions.MgSilicatesLarge', 'gas.dust_mass_fractions.FeSilicatesLarge',
                     'gas.dust_mass_fractions.GraphiteSmall', 'gas.dust_mass_fractions.MgSilicatesSmall', 'gas.dust_mass_fractions.FeSilicatesSmall'}
 
-    sgs = SWIFTGalaxies(virtual_snapshot_file, soap, preload = preload_fields)
+    if os.path.exists(virtual_snapshot_file):
+        sgs = SWIFTGalaxies(
+            virtual_snapshot_file,
+            SOAP(
+                catalogue_file,
+                soap_index=halo_indices,
+            ),
+            preload=preload_fields,
+        )
+        add_mem = False
+
+    else: 
+        # virtual snapshot does not exist 
+        # run SWIFTGalaxies without membership information first
+        
+        snapshot_file = params['InputFilepaths:SnapshotFile'].format(simPath=simPath,snap_nr=snap)
+        membership_file = params['InputFilepaths:membershipFile'].format(simPath=simPath,snap_nr=snap)
+        
+        sgs = SWIFTGalaxies(
+            snapshot_file,
+            SOAP(
+                catalogue_file,
+                soap_index=halo_indices,
+                extra_mask=None,
+            ),
+            preload=preload_fields,
+        )
+        add_mem = True
+
+        # and then add membership information
+        for sg in sgs:
+            attach_membership_info_to_sg_and_mask(sg, membership_file)
 
     # map accepts arguments `args` and `kwargs`, passed through to function, if needed
     sgs.map(analysis, args = list(zip(halo_IDs, Mstar, np.full(len(Mstar), snap))))
