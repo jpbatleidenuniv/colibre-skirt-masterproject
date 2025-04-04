@@ -8,6 +8,8 @@ import sys
 import warnings
 from datetime import datetime
 import unyt
+import os
+import yaml
 
 startTime = datetime.now()
 
@@ -31,13 +33,18 @@ skifileversion = '4.0'
 
 mediumXMLlineDict = {'4.0': (40, 197)} # Lines in the .ski file that describe the medium system
 
+# Define filepaths from parameter file
+dir_path = os.path.dirname(os.path.realpath(__file__))
+with open(f'{dir_path}/SKIRT_parameters.yml','r') as stream:
+    params = yaml.safe_load(stream)
+
 # Edit ski file
 
 def editSki(snapNum, haloID, Rstar):
 
     SKIRTinputFiles = SKIRTinputFilePath + 'snap' + snapNum + '_ID' + haloID
 
-    skifilename = '/Users/agebek/Projects/Colibre/colibre-skirt/template_v' + skifileversion + '.ski'
+    skifilename = params['InutFilepaths:skiFilepath'].format(skifileversion=skifileversion)
 
     skifilename_halo = 'snap' + snapNum + '_ID' + haloID + '.ski'
 

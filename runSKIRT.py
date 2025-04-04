@@ -6,21 +6,42 @@ Created by Andrea Gebek on 29.11.2024
 import numpy as np
 import subprocess
 from multiprocessing import Pool
+import yaml
+import argparse
+import os
 
-# Set Paths
+parser = argparse.ArgumentParser(
+    description="Run a set of SKIRT simulations for given halo indices."
+)
 
-sampleFolder = '/Users/agebek/Downloads/' # Folder to the galaxy sample files
-txtFilePath = '/Users/agebek/Downloads/' # Path to the COLIBRE particle .txt files
-SKIRTinputFilePath = '/Users/agebek/Downloads/' # Path where the SKIRT input files will be stored
+parser.add_argument(
+    "snapList",
+    type=list, # will make this functional if given singular integer input too
+    default=[56,123],
+    help="Snapshot number(s).",
+)
+
+parser.add_argument(
+        "--nproc",
+        type=int,
+        default=3,
+        help="Number of SKIRT simulations you want to run in parallel. Note that each SKIRT simulation runs with 4 threads by default.",
+)
+
+args = parser.parse_args()
+
+# Define filepaths from parameter file
+dir_path = os.path.dirname(os.path.realpath(__file__))
+with open(f'{dir_path}/SKIRT_parameters.yml','r') as stream:
+    params = yaml.safe_load(stream)
+
+sampleFolder = params['OutputFilepaths:sampleFolder'] # Folder to the galaxy sample files
+txtFilePath = params['OutputFilepaths:storeParticlesPath'] # Path to the COLIBRE particle .txt files
+SKIRTinputFilePath = params['OutputFilepaths:SKIRTinputFilePath'] # Path where the SKIRT input files will be stored
 
 # Set list of snapshots to postprocess
 
-snapList = [56, 123] # List of snapshots
-
-Nprocesses = 3 # How many SKIRT simulations you want to run in parallel.
-# Can also be set to one to run the SKIRT simulations serially.
-# Note that each SKIRT simulation runs with 4 threads by default
-# (this number can also be changed).
+Nprocesses = args.nproc
 
 def preprocess(snapList):
     # Generate a list of SKIRT simulation names and run the necessary preprocessing steps
@@ -59,7 +80,7 @@ def runSKIRT(skifilename):
 
 def main():
 
-    skifilenames = preprocess(snapList)
+    skifilenames = preprocess(args.snapList)
 
     with Pool(processes = Nprocesses) as pool:
         

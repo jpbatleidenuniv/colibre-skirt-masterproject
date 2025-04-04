@@ -6,25 +6,62 @@ Created by Andrea Gebek on 25.3.2025.
 import unyt
 from swiftsimio import load as load_snapshot
 import numpy as np
+import yaml
+import argparse
+import os
 
-dataPath = '/cosma8/data/dp004/colibre/Runs/'
-sampleFolder = '/cosma/home/do019/dc-gebe1/' # Folder where the galaxy sample .txt files are stored.
+# Set simName
+parser = argparse.ArgumentParser(
+    description="Select COLIBRE halos and store some global information."
+)
 
-simL = 25 # Box length in Mpc
-simR = 6 # Mass resolution in log10(M/Msun)
-simName = 'Thermal' # Thermal AGN feedback with non-equilibrium chemistry
-snapList = [56, 123] # List of snapshots
+parser.add_argument(
+    "BoxSize",
+    type=str,
+    help="Boxsize of the simulation in Mpc.",
+)
 
-sim = 'L{:03.0f}_m{:01.0f}'.format(simL, simR)     # Define the simulation box
-simPath = dataPath + sim + '/' + simName + '/'
+parser.add_argument(
+    "Resolution",
+    type=str,
+    help="Particle mass resolution of the simulation in log10(M/Msun).",
+)
+
+parser.add_argument(
+    "snapList",
+    type=list, # will make this functional if given singular integer input too
+    default=[56,123],
+    help="Snapshot number(s).",
+)
+
+parser.add_argument(
+    "--mode",
+    type=str,
+    default="Thermal", # Thermal AGN feedback with non-equilibrium chemistry
+    help="Simulation mode (default: Thermal).",
+)
+
+args = parser.parse_args()
+
+sim = 'L{:03.0f}_m{:01.0f}'.format(args.BoxSize, args.Resolution)
+simName = sim + '/' + args.mode
+
+# Define filepaths from parameter file
+dir_path = os.path.dirname(os.path.realpath(__file__))
+with open(f'{dir_path}/SKIRT_parameters.yml','r') as stream:
+    params = yaml.safe_load(stream)
+
+simPath = params['InputFilepaths:simPath'].format(simName=simName)
+sampleFolder = params['OutputFilepaths:sampleFolder']
 
 header = 'Column 1: Halo ID\n' + \
         'Column 2: Stellar mass (Msun)\n' + \
         'Column 3: Stellar half-mass radius (kpc)\n'
 
-for snap in snapList:
-
-    catalogue = load_snapshot(f'{simPath}SOAP/halo_properties_{snap:04d}.hdf5')
+for snap in args.snapList:
+    
+    catalogue_file = params['InputFilepaths:catalogueFile'].format(simPath=simPath,snap_nr=snap)
+    catalogue = load_snapshot(catalogue_file)
    
     halo_IDs = catalogue.input_halos.halo_catalogue_index.value
 
