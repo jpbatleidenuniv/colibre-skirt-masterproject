@@ -53,7 +53,7 @@ with open(f'{dir_path}/SKIRT_parameters.yml','r') as stream:
     params = yaml.safe_load(stream)
 
 simPath = params['InputFilepaths']['simPath'].format(simName=simName)
-sampleFolder = params['OutputFilepaths']['sampleFolder']
+sampleFolder = params['OutputFilepaths']['sampleFolder'].format(simPath=simPath)
 
 header = 'Column 1: Halo ID\n' + \
          'Column 2: Stellar mass (Msun)\n' + \

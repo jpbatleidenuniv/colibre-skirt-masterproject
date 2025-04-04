@@ -60,11 +60,11 @@ def preprocess(snapList):
 
             # Save SKIRT input files
 
-            subprocess.run(['python', 'saveSKIRTinput.py', str(snap), str(ID), txtFilePath, SKIRTinputFilePath])
+            subprocess.run(['python', f'{dir_path}/saveSKIRTinput.py', str(snap), str(ID), txtFilePath, SKIRTinputFilePath])
 
             # Edit ski files
 
-            subprocess.run(['python', 'editSkiFile.py', str(snap), str(ID), str(Rstar[idx]), txtFilePath, SKIRTinputFilePath])
+            subprocess.run(['python', f'{dir_path}/editSkiFile.py', str(snap), str(ID), str(Rstar[idx]), txtFilePath, SKIRTinputFilePath])
 
     return skifilenames
 

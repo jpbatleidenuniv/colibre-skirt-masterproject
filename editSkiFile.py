@@ -44,9 +44,9 @@ def editSki(snapNum, haloID, Rstar):
 
     SKIRTinputFiles = SKIRTinputFilePath + 'snap' + snapNum + '_ID' + haloID
 
-    skifilename = params['InutFilepaths']['skiFilepath'].format(skifileversion=skifileversion)
+    skifilename = params['InputFilepaths']['skiFilepath'].format(skifileversion=skifileversion)
 
-    skifilename_halo = 'snap' + snapNum + '_ID' + haloID + '.ski'
+    skifilename_halo = params['OutputFilepaths']['skiFilepath'] + '/snap' + snapNum + '_ID' + haloID + '.ski'
 
 
     subprocess.run(['cp', skifilename, skifilename_halo]) # copy the skirt file for each galaxy

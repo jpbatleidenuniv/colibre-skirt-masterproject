@@ -61,8 +61,8 @@ with open(f'{dir_path}/SKIRT_parameters.yml','r') as stream:
     params = yaml.safe_load(stream)
 
 simPath = params['InputFilepaths']['simPath'].format(simName=simName)
-sampleFolder = params['OutputFilepaths']['sampleFolder']
-storeParticlesPath = params['OutputFilepaths']['storeParticlesPath'] # Folder where the .txt particle files are stored
+sampleFolder = params['OutputFilepaths']['sampleFolder'].format(simPath=simPath)
+storeParticlesPath = params['OutputFilepaths']['storeParticlesPath'].format(simPath=simPath) # Folder where the .txt particle files are stored
 
 
 gas_header = 'Column 1: x (pc)\n' + \
