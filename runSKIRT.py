@@ -14,6 +14,19 @@ parser = argparse.ArgumentParser(
     description="Run a set of SKIRT simulations for given halo indices."
 )
 
+# Set simName if needed for output files
+parser.add_argument(
+    "BoxSize",
+    type=int,
+    help="Boxsize of the simulation in Mpc.",
+)
+
+parser.add_argument(
+    "Resolution",
+    type=int,
+    help="Particle mass resolution of the simulation in log10(M/Msun).",
+)
+
 parser.add_argument(
     "--snaps",
     type=int,
@@ -21,6 +34,14 @@ parser.add_argument(
     nargs='+',
     help="<Required> Snapshot number(s).",
 )
+
+parser.add_argument(
+    "--mode",
+    type=str,
+    default="Thermal", # Thermal AGN feedback with non-equilibrium chemistry
+    help="Simulation mode (default: Thermal).",
+)
+
 
 parser.add_argument(
         "--nproc",
@@ -31,14 +52,22 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+sim = 'L{:03.0f}_m{:01.0f}'.format(args.BoxSize, args.Resolution)
+simName = sim + '/' + args.mode
+
+args = parser.parse_args()
+
 # Define filepaths from parameter file
 dir_path = os.path.dirname(os.path.realpath(__file__))
 with open(f'{dir_path}/SKIRT_parameters.yml','r') as stream:
     params = yaml.safe_load(stream)
 
-sampleFolder = params['OutputFilepaths']['sampleFolder'] # Folder to the galaxy sample files
-txtFilePath = params['OutputFilepaths']['storeParticlesPath'] # Path to the COLIBRE particle .txt files
-SKIRTinputFilePath = params['OutputFilepaths']['SKIRTinputFilePath'] # Path where the SKIRT input files will be stored
+simPath = params['InputFilepaths']['simPath'].format(simName=simName)
+sampleFolder = params['OutputFilepaths']['sampleFolder'].format(simPath=simPath) # Folder to the galaxy sample files
+txtFilePath = params['OutputFilepaths']['storeParticlesPath'].format(simPath=simPath) # Path to the COLIBRE particle .txt files
+SKIRTinputFilePath = params['OutputFilepaths']['SKIRTinputFilePath'].format(simPath=simPath) # Path where the SKIRT input files will be stored
+
+print(sampleFolder)
 
 # Set list of snapshots to postprocess
 
@@ -56,7 +85,7 @@ def preprocess(snapList):
 
         for idx, ID in enumerate(halo_IDs):
 
-            skifilenames.append('snap' + str(snap) + '_ID' + str(ID))
+            skifilenames.append( params['OutputFilepaths']['skiFilepath'].format(simPath=simPath) + 'snap' + str(snap) + '_ID' + str(ID) )
 
             # Save SKIRT input files
 
@@ -64,7 +93,7 @@ def preprocess(snapList):
 
             # Edit ski files
 
-            subprocess.run(['python', f'{dir_path}/editSkiFile.py', str(snap), str(ID), str(Rstar[idx]), txtFilePath, SKIRTinputFilePath])
+            subprocess.run(['python', f'{dir_path}/editSkiFile.py', str(snap), str(ID), str(Rstar[idx]), txtFilePath, SKIRTinputFilePath, simPath])
 
     return skifilenames
 
