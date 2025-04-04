@@ -25,21 +25,22 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument(
     "BoxSize",
-    type=str,
+    type=int,
     help="Boxsize of the simulation in Mpc.",
 )
 
 parser.add_argument(
     "Resolution",
-    type=str,
+    type=int,
     help="Particle mass resolution of the simulation in log10(M/Msun).",
 )
 
 parser.add_argument(
-    "snapList",
-    type=list, # will make this functional if given singular integer input too
-    default=[56,123],
-    help="Snapshot number(s).",
+    "--snaps",
+    type=int,
+    required=True,
+    nargs='+',
+    help="<Required> Snapshot number(s).",
 )
 
 parser.add_argument(
@@ -59,9 +60,9 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 with open(f'{dir_path}/SKIRT_parameters.yml','r') as stream:
     params = yaml.safe_load(stream)
 
-simPath = params['InputFilepaths:simPath'].format(simName=simName)
-sampleFolder = params['OutputFilepaths:sampleFolder']
-storeParticlesPath = params['OutputFilepaths:storeParticlesPath'] # Folder where the .txt particle files are stored
+simPath = params['InputFilepaths']['simPath'].format(simName=simName)
+sampleFolder = params['OutputFilepaths']['sampleFolder']
+storeParticlesPath = params['OutputFilepaths']['storeParticlesPath'] # Folder where the .txt particle files are stored
 
 
 gas_header = 'Column 1: x (pc)\n' + \
@@ -166,12 +167,12 @@ def analysis(sg, halo_ID, Mstar, snap):
     return None
 
 
-for snap in args.snapList:
+for snap in args.snaps:
 
     startTime = datetime.now()
 
-    catalogue_file = params['InputFilepaths:catalogueFile'].format(simPath=simPath,snap_nr=snap)
-    virtual_snapshot_file = params['InputFilepaths:virtualSnapshotFile'].format(simPath=simPath,snap_nr=snap)
+    catalogue_file = params['InputFilepaths']['catalogueFile'].format(simPath=simPath,snap_nr=snap)
+    virtual_snapshot_file = params['InputFilepaths']['virtualSnapshotFile'].format(simPath=simPath,snap_nr=snap)
 
     catalogue = load_snapshot(catalogue_file)
 
@@ -215,8 +216,8 @@ for snap in args.snapList:
         # virtual snapshot does not exist 
         # run SWIFTGalaxies without membership information first
         
-        snapshot_file = params['InputFilepaths:SnapshotFile'].format(simPath=simPath,snap_nr=snap)
-        membership_file = params['InputFilepaths:membershipFile'].format(simPath=simPath,snap_nr=snap)
+        snapshot_file = params['InputFilepaths']['SnapshotFile'].format(simPath=simPath,snap_nr=snap)
+        membership_file = params['InputFilepaths']['membershipFile'].format(simPath=simPath,snap_nr=snap)
         
         sgs = SWIFTGalaxies(
             snapshot_file,

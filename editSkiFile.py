@@ -44,7 +44,7 @@ def editSki(snapNum, haloID, Rstar):
 
     SKIRTinputFiles = SKIRTinputFilePath + 'snap' + snapNum + '_ID' + haloID
 
-    skifilename = params['InutFilepaths:skiFilepath'].format(skifileversion=skifileversion)
+    skifilename = params['InutFilepaths']['skiFilepath'].format(skifileversion=skifileversion)
 
     skifilename_halo = 'snap' + snapNum + '_ID' + haloID + '.ski'
 

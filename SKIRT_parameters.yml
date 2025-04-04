@@ -16,5 +16,4 @@ OutputFilepaths:
   storeParticlesPath: "/cosma/home/do019/dc-gebe1/" # Folder where the .txt particle files are stored
   SKIRTinputFilePath: '/Users/agebek/Downloads/' # Path where the SKIRT input files will be stored
 
-  outputDir: "{simPath}/SKIRT/{snap_nr:04d}"
 

@@ -17,21 +17,22 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument(
     "BoxSize",
-    type=str,
+    type=int,
     help="Boxsize of the simulation in Mpc.",
 )
 
 parser.add_argument(
     "Resolution",
-    type=str,
+    type=int,
     help="Particle mass resolution of the simulation in log10(M/Msun).",
 )
 
 parser.add_argument(
-    "snapList",
-    type=list, # will make this functional if given singular integer input too
-    default=[56,123],
-    help="Snapshot number(s).",
+    "--snaps",
+    type=int,
+    required=True,
+    nargs='+',
+    help="<Required> Snapshot number(s).",
 )
 
 parser.add_argument(
@@ -51,16 +52,16 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 with open(f'{dir_path}/SKIRT_parameters.yml','r') as stream:
     params = yaml.safe_load(stream)
 
-simPath = params['InputFilepaths:simPath'].format(simName=simName)
-sampleFolder = params['OutputFilepaths:sampleFolder']
+simPath = params['InputFilepaths']['simPath'].format(simName=simName)
+sampleFolder = params['OutputFilepaths']['sampleFolder']
 
 header = 'Column 1: Halo ID\n' + \
         'Column 2: Stellar mass (Msun)\n' + \
         'Column 3: Stellar half-mass radius (kpc)\n'
 
-for snap in args.snapList:
+for snap in args.snaps:
     
-    catalogue_file = params['InputFilepaths:catalogueFile'].format(simPath=simPath,snap_nr=snap)
+    catalogue_file = params['InputFilepaths']['catalogueFile'].format(simPath=simPath,snap_nr=snap)
     catalogue = load_snapshot(catalogue_file)
    
     halo_IDs = catalogue.input_halos.halo_catalogue_index.value
