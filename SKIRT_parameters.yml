@@ -1,6 +1,7 @@
 ColibreFilepaths:
-  simPath: "/cosma8/data/dp004/colibre/Runs/{simName}"
-  sampleFolder: "/cosma/home/do019/dc-gebe1/"
+  simPath: "/cosma8/data/dp004/colibre/Runs/{simName}" # Path to COLIBRE simulation
+  sampleFolder: "/cosma/home/do019/dc-gebe1/" # Folder where the galaxy sample .txt files will be stored
+  storeParticlesPath: "/cosma/home/do019/dc-gebe1/" # Folder where the COLIBRE particle .txt files will be stored
 
   catalogueFile: "{simPath}/SOAP/halo_properties_{snap_nr:04d}.hdf5"
 
@@ -12,9 +13,9 @@ ColibreFilepaths:
   membershipFile: "{simPath}/SOAP/membership_{snap_nr:04d}.hdf5"
 
 SkirtFilepaths:
-  skiFilepath: "/Users/agebek/Projects/Colibre/colibre-skirt/template_v{skifileversion}.ski"
-  sampleFolder: "/Users/agebek/Downloads/" # Folder where the galaxy sample .txt files are stored.
-  storeParticlesPath: "/Users/agebek/Downloads/" # Folder where the .txt particle files are stored
+  skiFilepath: "/Users/agebek/Projects/Colibre/colibre-skirt/template_v{skifileversion}.ski" # The path to the ski file
+  sampleFolder: "/Users/agebek/Downloads/" # Folder where the galaxy sample .txt files are stored (for SKIRT run)
+  storeParticlesPath: "/Users/agebek/Downloads/" # Folder where the .txt particle files are stored (for SKIRT run)
   SKIRTinputFilePath: '/Users/agebek/Downloads/' # Path where the SKIRT input files will be stored
   SKIRToutputFilePath: '/Users/agebek/Downloads/' # Path where the SKIRT output files will be stored
 
