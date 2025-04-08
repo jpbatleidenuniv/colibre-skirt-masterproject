@@ -36,7 +36,7 @@ mediumXMLlineDict = {'4.0': (40, 197)} # Lines in the .ski file that describe th
 
 # Define filepaths from parameter file
 dir_path = os.path.dirname(os.path.realpath(__file__))
-with open(f'{dir_path}/SKIRT_parameters.yml','r') as stream:
+with open(f'{dir_path}/../SKIRT_parameters.yml','r') as stream:
     params = yaml.safe_load(stream)
 
 # Edit ski file

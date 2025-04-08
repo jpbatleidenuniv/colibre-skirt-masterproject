@@ -59,10 +59,10 @@ args = parser.parse_args()
 
 # Define filepaths from parameter file
 dir_path = os.path.dirname(os.path.realpath(__file__))
-with open(f'{dir_path}/SKIRT_parameters.yml','r') as stream:
+with open(f'{dir_path}/../SKIRT_parameters.yml','r') as stream:
     params = yaml.safe_load(stream)
 
-simPath = params['SkirtFilepaths']['simPath'].format(simName=simName)
+simPath = params['ColibreFilepaths']['simPath'].format(simName=simName)
 sampleFolder = params['SkirtFilepaths']['sampleFolder'].format(simPath=simPath) # Folder to the galaxy sample files
 txtFilePath = params['SkirtFilepaths']['storeParticlesPath'].format(simPath=simPath) # Path to the COLIBRE particle .txt files
 SKIRTinputFilePath = params['SkirtFilepaths']['SKIRTinputFilePath'].format(simPath=simPath) # Path where the SKIRT input files will be stored
