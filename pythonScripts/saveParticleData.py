@@ -60,9 +60,9 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 with open(f'{dir_path}/SKIRT_parameters.yml','r') as stream:
     params = yaml.safe_load(stream)
 
-simPath = params['InputFilepaths']['simPath'].format(simName=simName)
-sampleFolder = params['OutputFilepaths']['sampleFolder'].format(simPath=simPath)
-storeParticlesPath = params['OutputFilepaths']['storeParticlesPath'].format(simPath=simPath) # Folder where the .txt particle files are stored
+simPath = params['ColibreFilepaths']['simPath'].format(simName=simName)
+sampleFolder = params['SkirtFilepaths']['sampleFolder'].format(simPath=simPath)
+storeParticlesPath = params['SkirtFilepaths']['storeParticlesPath'].format(simPath=simPath) # Folder where the .txt particle files are stored
 
 
 gas_header = 'Column 1: x (pc)\n' + \
@@ -171,8 +171,8 @@ for snap in args.snaps:
 
     startTime = datetime.now()
 
-    catalogue_file = params['InputFilepaths']['catalogueFile'].format(simPath=simPath,snap_nr=snap)
-    virtual_snapshot_file = params['InputFilepaths']['virtualSnapshotFile'].format(simPath=simPath,snap_nr=snap)
+    catalogue_file = params['ColibreFilepaths']['catalogueFile'].format(simPath=simPath,snap_nr=snap)
+    virtual_snapshot_file = params['ColibreFilepaths']['virtualSnapshotFile'].format(simPath=simPath,snap_nr=snap)
 
     catalogue = load_snapshot(catalogue_file)
 
@@ -216,8 +216,8 @@ for snap in args.snaps:
         # virtual snapshot does not exist 
         # run SWIFTGalaxies without membership information first
         
-        snapshot_file = params['InputFilepaths']['SnapshotFile'].format(simPath=simPath,snap_nr=snap)
-        membership_file = params['InputFilepaths']['membershipFile'].format(simPath=simPath,snap_nr=snap)
+        snapshot_file = params['ColibreFilepaths']['SnapshotFile'].format(simPath=simPath,snap_nr=snap)
+        membership_file = params['ColibreFilepaths']['membershipFile'].format(simPath=simPath,snap_nr=snap)
         
         sgs = SWIFTGalaxies(
             snapshot_file,

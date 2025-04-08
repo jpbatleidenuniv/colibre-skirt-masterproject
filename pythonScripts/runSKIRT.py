@@ -62,12 +62,11 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 with open(f'{dir_path}/SKIRT_parameters.yml','r') as stream:
     params = yaml.safe_load(stream)
 
-simPath = params['InputFilepaths']['simPath'].format(simName=simName)
-sampleFolder = params['OutputFilepaths']['sampleFolder'].format(simPath=simPath) # Folder to the galaxy sample files
-txtFilePath = params['OutputFilepaths']['storeParticlesPath'].format(simPath=simPath) # Path to the COLIBRE particle .txt files
-SKIRTinputFilePath = params['OutputFilepaths']['SKIRTinputFilePath'].format(simPath=simPath) # Path where the SKIRT input files will be stored
-
-print(sampleFolder)
+simPath = params['SkirtFilepaths']['simPath'].format(simName=simName)
+sampleFolder = params['SkirtFilepaths']['sampleFolder'].format(simPath=simPath) # Folder to the galaxy sample files
+txtFilePath = params['SkirtFilepaths']['storeParticlesPath'].format(simPath=simPath) # Path to the COLIBRE particle .txt files
+SKIRTinputFilePath = params['SkirtFilepaths']['SKIRTinputFilePath'].format(simPath=simPath) # Path where the SKIRT input files will be stored
+SKIRToutputFilePath = params['SkirtFilepaths']['SKIRToutputFilePath'].format(simPath=simPath) # Path where the SKIRT output files will be stored
 
 # Set list of snapshots to postprocess
 
@@ -85,7 +84,7 @@ def preprocess(snapList):
 
         for idx, ID in enumerate(halo_IDs):
 
-            skifilenames.append( params['OutputFilepaths']['skiFilepath'].format(simPath=simPath) + 'snap' + str(snap) + '_ID' + str(ID) )
+            skifilenames.append( 'snap' + str(snap) + '_ID' + str(ID) )
 
             # Save SKIRT input files
 
@@ -108,6 +107,37 @@ def runSKIRT(skifilename):
 
     return skifilename
 
+def postprocess(snapList):
+
+    # Get the SKIRT output files and move them to the output folder
+
+    for snap in snapList:
+
+        halo_IDs = np.loadtxt(sampleFolder + '/sample_' + str(snap) + '.txt', unpack = True, usecols = 0).astype(int)
+
+        for idx, ID in enumerate(halo_IDs):
+
+            sim_name = 'snap' + str(snap) + '_ID' + str(ID)
+
+            subprocess.run(['rm', sim_name + '.ski']) # Remove the SKIRT input file
+
+            subprocess.run(['mv', sim_name + '_parameters.xml', SKIRToutputFilePath + sim_name + '_parameters.xml'])
+            subprocess.run(['mv', sim_name + '_log.txt', SKIRToutputFilePath + sim_name + '_log.txt'])
+
+            if os.path.isfile(sim_name + '_conv_convergence.dat'): # Check if the file exists (it only does if there is a SKIRT medium)
+                subprocess.run(['mv', sim_name + '_conv_convergence.dat', SKIRToutputFilePath + sim_name + '_conv_convergence.dat'])
+                
+            subprocess.run(['mv', sim_name + '_lum_luminosities.dat', SKIRToutputFilePath + sim_name + '_lum_luminosities.dat'])
+            subprocess.run(['mv', sim_name + '_SED_tot_sed.dat', SKIRToutputFilePath + sim_name + '_SED_tot.dat'])
+            subprocess.run(['mv', sim_name + '_SED_10kpc_sed.dat', SKIRToutputFilePath + sim_name + '_SED_10kpc.dat'])
+            subprocess.run(['mv', sim_name + '_SED_30kpc_sed.dat', SKIRToutputFilePath + sim_name + '_SED_30kpc.dat'])
+            subprocess.run(['mv', sim_name + '_SED_50kpc_sed.dat', SKIRToutputFilePath + sim_name + '_SED_50kpc.dat'])
+            subprocess.run(['mv', sim_name + '_SED_1Rstar_sed.dat', SKIRToutputFilePath + sim_name + '_SED_1Rstar.dat'])
+            subprocess.run(['mv', sim_name + '_SED_3Rstar_sed.dat', SKIRToutputFilePath + sim_name + '_SED_3Rstar.dat'])
+            subprocess.run(['mv', sim_name + '_SED_5Rstar_sed.dat', SKIRToutputFilePath + sim_name + '_SED_5Rstar.dat'])
+    
+
+
 def main():
 
     skifilenames = preprocess(args.snaps)
@@ -115,6 +145,8 @@ def main():
     with Pool(processes = Nprocesses) as pool:
         
         pool.map(runSKIRT, skifilenames)
+
+    postprocess(args.snaps)
 
 if __name__=="__main__":
 

@@ -30,7 +30,7 @@
                             <QuarticSplineSmoothingKernel/>
                         </smoothingKernel>
                         <sedFamily type="SEDFamily">
-                            <ToddlersSFRNormalizedSEDFamily templateType="BPASSChab100Bin" dust="Yes" resolution="Low" sfrPeriod="Period0Myr"/>
+                            <ToddlersSEDFamily sedMode="SFRNormalized" stellarTemplate="BPASSChab100Bin" includeDust="true" resolution="Low" sfrPeriod="Period0Myr"/>
                         </sedFamily>
                         <wavelengthBiasDistribution type="WavelengthDistribution">
                             <DefaultWavelengthDistribution/>

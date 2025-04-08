@@ -52,8 +52,8 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 with open(f'{dir_path}/SKIRT_parameters.yml','r') as stream:
     params = yaml.safe_load(stream)
 
-simPath = params['InputFilepaths']['simPath'].format(simName=simName)
-sampleFolder = params['OutputFilepaths']['sampleFolder'].format(simPath=simPath)
+simPath = params['ColibreFilepaths']['simPath'].format(simName=simName)
+sampleFolder = params['ColibreFilepaths']['sampleFolder'].format(simPath=simPath)
 
 header = 'Column 1: Halo ID\n' + \
          'Column 2: Stellar mass (Msun)\n' + \
@@ -61,7 +61,7 @@ header = 'Column 1: Halo ID\n' + \
 
 for snap in args.snaps:
     
-    catalogue_file = params['InputFilepaths']['catalogueFile'].format(simPath=simPath,snap_nr=snap)
+    catalogue_file = params['ColibreFilepaths']['catalogueFile'].format(simPath=simPath,snap_nr=snap)
     catalogue = load_snapshot(catalogue_file)
    
     halo_IDs = catalogue.input_halos.halo_catalogue_index.value
