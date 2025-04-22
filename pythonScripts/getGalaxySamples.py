@@ -1,8 +1,12 @@
 """
 Script to select COLIBRE halos and store some global information.
 Created by Andrea Gebek on 25.3.2025.
-"""
 
+Edit: In our case, snapshots are located on the Sterrenwacht (STRW) server of Leiden Observatory.
+A typical path to the simulation data is: /net/hypernova/data2/COLIBRE/L0100N1504/Thermal_non_equilibrium/SOAP/halo_properties_0127.hdf5.
+Associated edits to the filepaths in the SKIRT_parameters.yml file are required.
+"""
+import sys
 import unyt
 from swiftsimio import load as load_snapshot
 import numpy as np
@@ -21,11 +25,17 @@ parser.add_argument(
     help="Boxsize of the simulation in Mpc.",
 )
 
-parser.add_argument(
-    "Resolution",
+parser.add_argument( # required since simulation formats are different e.g. L0100N1504, L0025N0752
+    "NumParticles",
     type=int,
-    help="Particle mass resolution of the simulation in log10(M/Msun).",
-)
+    help="Number of particles in each dimension of the simulation. Similar meaning to resolution.",
+    )
+
+# parser.add_argument(
+#     "Resolution",
+#     type=int,
+#     help="Particle mass resolution of the simulation in log10(M/Msun).",
+# )
 
 parser.add_argument(
     "--snaps",
@@ -38,14 +48,14 @@ parser.add_argument(
 parser.add_argument(
     "--mode",
     type=str,
-    default="Thermal", # Thermal AGN feedback with non-equilibrium chemistry
+    default="Thermal_non_equilibrium", # Thermal AGN feedback with non-equilibrium chemistry
     help="Simulation mode (default: Thermal).",
 )
 
 args = parser.parse_args()
 
-sim = 'L{:03.0f}_m{:01.0f}'.format(args.BoxSize, args.Resolution)
-simName = sim + '/' + args.mode
+sim = 'L{:04.0f}N{:04.0f}'.format(args.BoxSize, args.NumParticles) # L0025N0752, L0100N1504, L0250N0752, L0250N1504, L0500N1504
+simName = sim + '/' + args.mode # adds the simulation mode to the simulation name, e.g. L0100N1504/Thermal_non_equilibrium
 
 # Define filepaths from parameter file
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -54,6 +64,15 @@ with open(f'{dir_path}/../SKIRT_parameters.yml','r') as stream:
 
 simPath = params['ColibreFilepaths']['simPath'].format(simName=simName)
 sampleFolder = params['ColibreFilepaths']['sampleFolder'].format(simPath=simPath)
+
+# Check if the sample folder exists
+if not os.path.exists(simPath):
+    print(f"Error: The specified simulation path does not exist: {simPath}")
+    sys.exit(1)
+
+if not os.path.exists(sampleFolder):
+    print(f"Error: The specified sample folder does not exist: {sampleFolder}")
+    sys.exit(1)
 
 header = 'Column 1: Halo ID\n' + \
          'Column 2: Stellar mass (Msun)\n' + \
