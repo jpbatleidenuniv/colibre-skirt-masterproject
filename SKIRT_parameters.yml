@@ -1,24 +1,24 @@
 ColibreFilepaths:
-  simPath: "/cosma8/data/dp004/colibre/Runs/{simName}" # Path to COLIBRE simulation
-  sampleFolder: "/cosma/home/do019/dc-gebe1/" # Folder where the galaxy sample .txt files will be stored
-  storeParticlesPath: "/cosma/home/do019/dc-gebe1/" # Folder where the COLIBRE particle .txt files will be stored
+  simPath: "/net/hypernova/data2/COLIBRE/{simName}" # Path to COLIBRE simulation
+  sampleFolder: "/net/draco/data2/jbaars/MyFRP/skirtRuns/" # Folder where the galaxy sample .txt files will be stored
+  storeParticlesPath: "/net/draco/data2/jbaars/MyFRP/skirtRuns/" # Folder where the COLIBRE particle .txt files will be stored
 
-  catalogueFile: "{simPath}/SOAP/halo_properties_{snap_nr:04d}.hdf5"
+  catalogueFile: "{simPath}/SOAP/halo_properties_{snap_nr:04d}.hdf5" # The same for STRW machines
 
   # If the snapshots are distributed
   virtualSnapshotFile: "{simPath}/SOAP/colibre_with_SOAP_membership_{snap_nr:04d}.hdf5"
 
   # If not distributed you need to provide the membership and snapshot information separately
-  snapshotFile: "{simPath}/snapshots/colibre_{snap_nr:04d}.hdf5"
-  membershipFile: "{simPath}/SOAP/membership_{snap_nr:04d}.hdf5"
+  # snapshotFile: "{simPath}/snapshots/colibre_{snap_nr:04d}.hdf5" # We assume virtual snaps are distributed
+  # membershipFile: "{simPath}/SOAP/membership_{snap_nr:04d}.hdf5"
 
 SkirtFilepaths:
-  skiFilepath: "/Users/agebek/Projects/Colibre/colibre-skirt/template_v{skifileversion}.ski" # The path to the ski file
-  sampleFolder: "/Users/agebek/Downloads/TESTING/" # Folder where the galaxy sample .txt files are stored (for SKIRT run)
-  storeParticlesPath: "/Users/agebek/Downloads/TESTING/particleData/" # Folder where the .txt particle files are stored (for SKIRT run)
-  SKIRTinputFilePath: '/Users/agebek/Downloads/TESTING/SKIRTinputFiles/' # Path where the SKIRT input files will be stored
-  SKIRToutputFilePath: '/Users/agebek/Downloads/TESTING/SKIRToutputFiles/' # Path where the SKIRT output files will be stored
+  skiFilepath: "/net/draco/data2/jbaars/MyFRP/colibre-skirt-masterproject/template_v{skifileversion}.ski" # The path to the ski file
+  sampleFolder: "/net/draco/data2/jbaars/MyFRP/skirtRuns/" # Folder where the galaxy sample .txt files are stored (for SKIRT run)
+  storeParticlesPath: "/net/draco/data2/jbaars/MyFRP/skirtRuns/particleData/" # Folder where the .txt particle files are stored (for SKIRT run)
+  SKIRTinputFilePath: '/net/draco/data2/jbaars/MyFRP/skirtRuns/SKIRTinputFiles/' # Path where the SKIRT input files will be stored
+  SKIRToutputFilePath: '/net/draco/data2/jbaars/MyFRP/skirtRuns/SKIRToutputFiles/' # Path where the SKIRT output files will be stored
 
 SelectionCriteria:
-  minStellarMass: 1e9 # Lower stellar mass limit for halo selection in Msun
-  maxStellarMass: 1.05e9 # Upper stellar mass limit for halo selection in Msun
+  minStellarMass: 1e11 # Lower stellar mass limit for halo selection in Msun
+  maxStellarMass: 1.2e11 # Upper stellar mass limit for halo selection in Msun
