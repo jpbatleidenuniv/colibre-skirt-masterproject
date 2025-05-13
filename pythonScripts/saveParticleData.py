@@ -29,11 +29,17 @@ parser.add_argument(
     help="Boxsize of the simulation in Mpc.",
 )
 
-parser.add_argument(
-    "Resolution",
+parser.add_argument( # required since simulation formats are different e.g. L0100N1504, L0025N0752
+    "NumParticles",
     type=int,
-    help="Particle mass resolution of the simulation in log10(M/Msun).",
-)
+    help="Number of particles in each dimension of the simulation. Similar meaning to resolution.",
+    )
+
+# parser.add_argument(
+#     "Resolution",
+#     type=int,
+#     help="Particle mass resolution of the simulation in log10(M/Msun).",
+# )
 
 parser.add_argument(
     "--snaps",
@@ -46,14 +52,14 @@ parser.add_argument(
 parser.add_argument(
     "--mode",
     type=str,
-    default="Thermal", # Thermal AGN feedback with non-equilibrium chemistry
+    default="Thermal_non_equilibrium", # Thermal AGN feedback with non-equilibrium chemistry
     help="Simulation mode (default: Thermal).",
 )
 
 args = parser.parse_args()
 
-sim = 'L{:03.0f}_m{:01.0f}'.format(args.BoxSize, args.Resolution)
-simName = sim + '/' + args.mode
+sim = 'L{:04.0f}N{:04.0f}'.format(args.BoxSize, args.NumParticles) # L0025N0752, L0100N1504, L0250N0752, L0250N1504, L0500N1504
+simName = sim + '/' + args.mode # adds the simulation mode to the simulation name, e.g. L0100N1504/Thermal_non_equilibrium
 
 # Define filepaths from parameter file
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -61,8 +67,8 @@ with open(f'{dir_path}/../SKIRT_parameters.yml','r') as stream:
     params = yaml.safe_load(stream)
 
 simPath = params['ColibreFilepaths']['simPath'].format(simName=simName)
-sampleFolder = params['ColibreFilepaths']['sampleFolder'].format(simPath=simPath)
-storeParticlesPath = params['ColibreFilepaths']['storeParticlesPath'].format(simPath=simPath) # Folder where the .txt particle files are stored
+sampleFolder = params['ColibreFilepaths']['sampleFolder'].format(sim=sim)
+storeParticlesPath = params['ColibreFilepaths']['storeParticlesPath'].format(sim=sim) # Folder where the .txt particle files are stored
 
 
 gas_header = 'Column 1: x (pc)\n' + \

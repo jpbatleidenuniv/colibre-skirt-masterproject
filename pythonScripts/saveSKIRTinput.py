@@ -18,7 +18,7 @@ haloID = sys.argv[2]
 txtFilePath = sys.argv[3]
 SKIRTinputFilePath = sys.argv[4]
 
-SKIRTboxsize = unyt.unyt_quantity(100., 'kpc') # Box size of the SKIRT simulation (physical size, not comoving size)
+SKIRTboxsize = unyt.unyt_quantity(50., 'kpc') # Box size of the SKIRT simulation (physical size, not comoving size)
 old_stars_tmin = unyt.unyt_quantity(10., 'Myr') # Minimum age in Myr for an evolved star particle. Also determines the TODDLERS averaging timescale
 
 print('Saving SKIRT input txt files for halo ID:', haloID)

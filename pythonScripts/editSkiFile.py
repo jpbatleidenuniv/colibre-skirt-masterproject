@@ -15,7 +15,7 @@ startTime = datetime.now()
 
 # Global settings
 
-SKIRTboxsize = unyt.unyt_quantity(100., 'kpc')
+SKIRTboxsize = unyt.unyt_quantity(50., 'kpc')
 old_stars_tmin = unyt.unyt_quantity(10., 'Myr') # Minimum age in Myr for an evolved star particle. Also determines the TODDLERS averaging timescale
 # Don't change this unless you know what you're doing :)
 
@@ -24,11 +24,9 @@ binTreeMaxLevel = 36 # Max refinement level of the spatial grid
 
 snapNum = sys.argv[1]
 haloID = sys.argv[2]
-Rstar = float(sys.argv[3])
-
-txtFilePath = sys.argv[4]
-SKIRTinputFilePath = sys.argv[5]
-simPath = sys.argv[6]
+txtFilePath = sys.argv[3]
+SKIRTinputFilePath = sys.argv[4]
+simPath = sys.argv[5]
 
 skifileversion = '4.0'
 
@@ -41,7 +39,7 @@ with open(f'{dir_path}/../SKIRT_parameters.yml','r') as stream:
 
 # Edit ski file
 
-def editSki(snapNum, haloID, Rstar):
+def editSki(snapNum, haloID):
 
     SKIRTinputFiles = SKIRTinputFilePath + 'snap' + snapNum + '_ID' + haloID
 
@@ -117,16 +115,12 @@ def editSki(snapNum, haloID, Rstar):
 
     subprocess.run(['perl', '-pi', '-e', 's/numPackets=\"0/numPackets=\"' + str(Npp) + '/g', skifilename_halo])
 
-    subprocess.run(['perl', '-pi', '-e', 's#old_stars#' + SKIRTinputFiles + '_old_stars#g', skifilename_halo])
-    subprocess.run(['perl', '-pi', '-e', 's#starforming_gas#' + SKIRTinputFiles + '_starforming_gas#g', skifilename_halo])
-    subprocess.run(['perl', '-pi', '-e', 's/Period0/Period' + str(int(old_stars_tmin.to('Myr').value)) + '/g', skifilename_halo])
-
-    subprocess.run(['perl', '-pi', '-e', 's/radius=\"1 Rstar/radius=\"' + str(Rstar) + ' kpc' +  '/g', skifilename_halo])
-    subprocess.run(['perl', '-pi', '-e', 's/radius=\"3 Rstar/radius=\"' + str(3. * Rstar) + ' kpc' +  '/g', skifilename_halo])
-    subprocess.run(['perl', '-pi', '-e', 's/radius=\"5 Rstar/radius=\"' + str(5. * Rstar) + ' kpc' +  '/g', skifilename_halo])
+    subprocess.run(['perl', '-pi', '-e', 's#old_stars#' + SKIRTinputFiles + '_old_stars#g', skifilename_halo]) # Both of these change of filenames
+    subprocess.run(['perl', '-pi', '-e', 's#starforming_gas#' + SKIRTinputFiles + '_starforming_gas#g', skifilename_halo]) # e.g. starforming_gas.txt -> 
+    subprocess.run(['perl', '-pi', '-e', 's/Period0/Period' + str(int(old_stars_tmin.to('Myr').value)) + '/g', skifilename_halo]) # Changing TODDLERS timescale
 
     return None
 
-editSki(snapNum, haloID, Rstar)
+editSki(snapNum, haloID)
 
 print('Elapsed time to edit ski file and calculate dust surface density:', datetime.now() - startTime)

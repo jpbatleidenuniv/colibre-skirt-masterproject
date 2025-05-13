@@ -21,11 +21,17 @@ parser.add_argument(
     help="Boxsize of the simulation in Mpc.",
 )
 
-parser.add_argument(
-    "Resolution",
+parser.add_argument( # required since simulation formats are different e.g. L0100N1504, L0025N0752
+    "NumParticles",
     type=int,
-    help="Particle mass resolution of the simulation in log10(M/Msun).",
-)
+    help="Number of particles in each dimension of the simulation. Similar meaning to resolution.",
+    )
+
+# parser.add_argument(
+#     "Resolution",
+#     type=int,
+#     help="Particle mass resolution of the simulation in log10(M/Msun).",
+# )
 
 parser.add_argument(
     "--snaps",
@@ -38,10 +44,9 @@ parser.add_argument(
 parser.add_argument(
     "--mode",
     type=str,
-    default="Thermal", # Thermal AGN feedback with non-equilibrium chemistry
-    help="Simulation mode (default: Thermal).",
+    default="Thermal_non_equilibrium", # Thermal AGN feedback with non-equilibrium chemistry
+    help="Simulation mode (default: Thermal_non_equilibrium).",
 )
-
 
 parser.add_argument(
         "--nproc",
@@ -52,8 +57,8 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-sim = 'L{:03.0f}_m{:01.0f}'.format(args.BoxSize, args.Resolution)
-simName = sim + '/' + args.mode
+sim = 'L{:04.0f}N{:04.0f}'.format(args.BoxSize, args.NumParticles) # L0025N0752, L0100N1504, L0250N0752, L0250N1504, L0500N1504
+simName = sim + '/' + args.mode # adds the simulation mode to the simulation name, e.g. L0100N1504/Thermal_non_equilibrium
 
 args = parser.parse_args()
 
@@ -63,10 +68,10 @@ with open(f'{dir_path}/../SKIRT_parameters.yml','r') as stream:
     params = yaml.safe_load(stream)
 
 simPath = params['ColibreFilepaths']['simPath'].format(simName=simName)
-sampleFolder = params['SkirtFilepaths']['sampleFolder'].format(simPath=simPath) # Folder to the galaxy sample files
-txtFilePath = params['SkirtFilepaths']['storeParticlesPath'].format(simPath=simPath) # Path to the COLIBRE particle .txt files
-SKIRTinputFilePath = params['SkirtFilepaths']['SKIRTinputFilePath'].format(simPath=simPath) # Path where the SKIRT input files will be stored
-SKIRToutputFilePath = params['SkirtFilepaths']['SKIRToutputFilePath'].format(simPath=simPath) # Path where the SKIRT output files will be stored
+sampleFolder = params['SkirtFilepaths']['sampleFolder'].format(sim=sim) # Folder to the galaxy sample files
+txtFilePath = params['SkirtFilepaths']['storeParticlesPath'].format(sim=sim) # Path to the COLIBRE particle .txt files
+SKIRTinputFilePath = params['SkirtFilepaths']['SKIRTinputFilePath'].format(sim=sim) # Path where the SKIRT input files will be stored
+SKIRToutputFilePath = params['SkirtFilepaths']['SKIRToutputFilePath'].format(sim=sim) # Path where the SKIRT output files will be stored
 
 # Set list of snapshots to postprocess
 
@@ -79,7 +84,7 @@ def preprocess(snapList):
 
     for snap in snapList:
 
-        halo_IDs, Rstar = np.loadtxt(sampleFolder + '/sample_' + str(snap) + '.txt', unpack = True, usecols = [0, 2])
+        halo_IDs = np.loadtxt(sampleFolder + '/sample_' + str(snap) + '.txt', unpack = True, usecols = 0)
         halo_IDs = halo_IDs.astype(int)
 
         for idx, ID in enumerate(halo_IDs):
@@ -92,7 +97,7 @@ def preprocess(snapList):
 
             # Edit ski files
 
-            subprocess.run(['python', f'{dir_path}/editSkiFile.py', str(snap), str(ID), str(Rstar[idx]), txtFilePath, SKIRTinputFilePath, simPath])
+            subprocess.run(['python', f'{dir_path}/editSkiFile.py', str(snap), str(ID), txtFilePath, SKIRTinputFilePath, simPath])
 
     return skifilenames
 
@@ -102,7 +107,7 @@ def runSKIRT(skifilename):
 
     # Run skirt
 
-    subprocess.run(['skirt', '-t', '4', '-b', skifilename]) # Run SKIRT with 4 threads (that's apparently quite optimal)
+    subprocess.run(['skirt', '-t', '16', '-b', skifilename]) # Run SKIRT with 4 threads (that's apparently quite optimal)
     # The -b option reduces the verbosity of the log (but the saved log file still contains all logging information)
 
     return skifilename
@@ -119,7 +124,7 @@ def postprocess(snapList):
 
             sim_name = 'snap' + str(snap) + '_ID' + str(ID)
 
-            subprocess.run(['rm', sim_name + '.ski']) # Remove the SKIRT input file
+            # subprocess.run(['rm', sim_name + '.ski']) # Remove the SKIRT input file
 
             subprocess.run(['mv', sim_name + '_parameters.xml', SKIRToutputFilePath + sim_name + '_parameters.xml'])
             subprocess.run(['mv', sim_name + '_log.txt', SKIRToutputFilePath + sim_name + '_log.txt'])
@@ -128,13 +133,9 @@ def postprocess(snapList):
                 subprocess.run(['mv', sim_name + '_conv_convergence.dat', SKIRToutputFilePath + sim_name + '_conv_convergence.dat'])
                 
             subprocess.run(['mv', sim_name + '_lum_luminosities.dat', SKIRToutputFilePath + sim_name + '_lum_luminosities.dat'])
-            subprocess.run(['mv', sim_name + '_SED_tot_sed.dat', SKIRToutputFilePath + sim_name + '_SED_tot.dat'])
-            subprocess.run(['mv', sim_name + '_SED_10kpc_sed.dat', SKIRToutputFilePath + sim_name + '_SED_10kpc.dat'])
-            subprocess.run(['mv', sim_name + '_SED_30kpc_sed.dat', SKIRToutputFilePath + sim_name + '_SED_30kpc.dat'])
-            subprocess.run(['mv', sim_name + '_SED_50kpc_sed.dat', SKIRToutputFilePath + sim_name + '_SED_50kpc.dat'])
-            subprocess.run(['mv', sim_name + '_SED_1Rstar_sed.dat', SKIRToutputFilePath + sim_name + '_SED_1Rstar.dat'])
-            subprocess.run(['mv', sim_name + '_SED_3Rstar_sed.dat', SKIRToutputFilePath + sim_name + '_SED_3Rstar.dat'])
-            subprocess.run(['mv', sim_name + '_SED_5Rstar_sed.dat', SKIRToutputFilePath + sim_name + '_SED_5Rstar.dat'])
+
+            # We use a frame instrument which outputs a different file format
+            subprocess.run(['mv', sim_name + '_image_total.fits', SKIRToutputFilePath + sim_name + '_image_total.fits'])
     
 
 
