@@ -1,0 +1,95 @@
+ColibrePaths:
+  # Path to where the COLIBRE simulations are stored
+  simPath: "/net/hypernova/data2/COLIBRE/{sim_name}"
+  # Path to the halo_catalogue file
+  virtualSnapshotPath: "/net/hypernova/data2/COLIBRE/{sim_name}/SOAP/colibre_with_SOAP_membership_{snap_nr:04d}.hdf5"
+  haloCataloguePath: "/net/hypernova/data2/COLIBRE/{sim_name}/SOAP/halo_properties_{snap_nr:04d}.hdf5"
+  # Path to the SKIRT simulation files
+
+SKIRTPaths:
+  # Path where each simulation will be stored
+  skirtRunsPath: "/net/draco/data2/jbaars/MyFRP/skirtRuns/{sim}-{mode}/{snap_nr}"
+  templateSkiFile: "/data2/jbaars/MyFRP/src/colibre_skirt_master/template_v4.0.ski"
+
+Headers:
+# Header for the sample file
+  starforming_gas: |
+    Column 1: x (pc)
+    Column 2: y (pc)
+    Column 3: z (pc)
+    Column 4: smoothing length (pc)
+    Column 5: metallicity (1)
+    Column 6: star formation efficiency (1)
+    Column 7: cloud density (1/cm3)
+    Column 8: star formation rate averaged over 10 Myr (Msun/yr)
+  old_stars: |
+    Column 1: x (pc)
+    Column 2: y (pc)
+    Column 3: z (pc)
+    Column 4: smoothing length (pc)
+    Column 5: initial stellar mass (Msun)
+    Column 6: metallicity (1)
+    Column 7: age (yr)
+  dust: |
+    Column 1: x (pc)
+    Column 2: y (pc)
+    Column 3: z (pc)
+    Column 4: smoothing length (pc)
+    Column 5: dust mass large graphite (Msun)
+    Column 6: dust mass large Mg silicates (Msun)
+    Column 7: dust mass large Fe silicates (Msun)
+    Column 8: dust mass small graphite (Msun)
+    Column 9: dust mass small Mg silicates (Msun)
+    Column 10: dust mass small Fe silicates (Msun)
+
+SelectionCriteria:
+  massRange:
+    minStellarMass: 6309573444.8 # Lower stellar mass limit for halo selection in Msun
+    maxStellarMass: 1e11 # Upper stellar mass limit for halo selection in Msun
+  oldStarsAge:
+    tmin: 10 # Minimum age of old stars in Myr
+  boxSize:
+    box_size: 50 # Size of the box in kpc for halo selection
+
+SimulationParameters:
+  Nprocesses: 3 # Number of processes to use for parallel processing
+  
+Preload:
+  # Configuration of which fields to preload from the COLIBRE simulation
+  preload_fields: {'stars.coordinates', 'stars.smoothing_lengths', 'stars.metal_mass_fractions', 'stars.initial_masses', 'stars.ages', 'stars.masses',
+                    'gas.coordinates', 'gas.smoothing_lengths', 'gas.masses', 'gas.metal_mass_fractions', 'gas.star_formation_rates', 'gas.averaged_star_formation_rates',
+                    'gas.total_dust_mass_fractions',
+                    'gas.dust_mass_fractions.GraphiteLarge', 'gas.dust_mass_fractions.MgSilicatesLarge', 'gas.dust_mass_fractions.FeSilicatesLarge',
+                    'gas.dust_mass_fractions.GraphiteSmall', 'gas.dust_mass_fractions.MgSilicatesSmall', 'gas.dust_mass_fractions.FeSilicatesSmall'}
+
+SkiFileEdits:
+  edits:
+    - xpath: './/MonteCarloSimulation'
+      attribute: 'numPackets'
+      value: '1e7'
+
+    - xpath: './/ParticleSource[1]'
+      attribute: 'filename'
+      value: 'ID{halo_ID}_old_stars.txt'
+
+    - xpath: './/ParticleSource[2]'
+      attribute: 'filename'
+      value: 'ID{halo_ID}_starforming_gas.txt'
+
+    - xpath: './/ParticleMedium'
+      attribute: 'filename'
+      value: 'ID{halo_ID}_dust.txt'
+
+    - xpath: './/PolicyTreeSpatialGrid'
+      attributes:
+        minX: '-25 kpc'
+        maxX: '25 kpc'
+        minY: '-25 kpc'
+        maxY: '25 kpc'
+        minZ: '-25 kpc'
+        maxZ: '25 kpc'
+
+    - xpath: './/DensityTreePolicy'
+      attributes:
+        maxLevel: '36'
+        maxDustFraction: '{max_dust_fraction}'

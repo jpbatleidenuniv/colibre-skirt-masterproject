@@ -1,0 +1,36 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# SKIRT related files
+*.ski
+*.xml
+
+# Files related to data input/output
+*.fits
+*.hdf5
+*.txt
+*.npy
+*.png
+
+# Files from collaboration
+runSKIRT.py
+saveSKIRTinput.py
+
+# Directories/files that should be kept
+!sample_info*.txt
+
+# Init files
+__init__.py
+
+# Testing files
+test.py
+test*.ipynb
+test*.py
